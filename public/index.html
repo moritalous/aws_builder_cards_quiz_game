@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>AWS BuilderCards Quiz Game</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/src/style.css">
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+
+<body>
+    <div id="app">
+        <h1>AWS BuilderCards Quiz Game</h1>
+        <div id="status" class="disconnected">Disconnected</div>
+        
+        <!-- Instructions text -->
+        <div id="instructions" class="instructions">
+            <p>Say <strong>"Let's start"</strong> to begin the quiz.</p>
+            <p>When you find the right card, say <strong>"I found it"</strong> to take a photo and check your answer.</p>
+            <p>Say <strong>"Next question"</strong> for a new question.</p>
+        </div>
+        
+        <div id="main-container">
+            <div id="video-container">
+                <video id="camera-feed" autoplay playsinline></video>
+                <!-- Camera controls (hidden) -->
+                <div id="camera-controls" style="display: none;">
+                    <button id="take-photo" class="camera-button" disabled>
+                        <span class="camera-icon">📷</span>
+                    </button>
+                </div>
+                <canvas id="photo-canvas" style="display:none;"></canvas>
+                <div id="photo-preview-container" style="display:none;">
+                    <img id="photo-preview" alt="Captured photo">
+                    <div class="photo-actions">
+                        <button id="save-photo" class="button">Save</button>
+                        <button id="discard-photo" class="button">Discard</button>
+                    </div>
+                </div>
+            </div>
+            <div id="chat-container"></div>
+        </div>
+        <div id="controls">
+            <button id="start" class="button">Start Streaming</button>
+            <button id="stop" class="button" disabled>Stop Streaming</button>
+            <button id="camera-toggle" class="button">Start Camera</button>
+            <button id="auto-capture-toggle" class="button">Disable Auto Capture</button>
+            <button id="toggle-chat" class="button">Show Chat</button>
+            <select id="camera-select" class="button" disabled>
+                <option value="">Loading cameras...</option>
+            </select>
+        </div>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+</body>
+
+</html>
