@@ -1,7 +1,7 @@
 # AWS BuilderCards Quiz Game
 
 ## Overview
-AWS BuilderCards Quiz Game is a voice-interactive quiz game that combines Amazon Nova Sonic and Nova Pro. In this application, AI reads descriptions of AWS services, and players respond by showing the corresponding AWS BuilderCard to the camera. The system recognizes the card through the camera and determines whether the answer is correct, advancing the game accordingly.
+AWS BuilderCards Quiz Game is a voice-interactive quiz game that combines Amazon Nova Sonic and Nova Lite. In this application, AI reads descriptions of AWS services, and players respond by showing the corresponding AWS BuilderCard to the camera. The system recognizes the card through the camera and determines whether the answer is correct, advancing the game accordingly.
 
 ## Key Features
 
@@ -15,7 +15,7 @@ AWS BuilderCards Quiz Game is a voice-interactive quiz game that combines Amazon
 
 - **Frontend**: HTML/JavaScript/CSS
 - **Backend**: Node.js/Express
-- **AWS Services**: Bedrock (Nova Sonic, Nova Pro)
+- **AWS Services**: Bedrock (Nova Sonic, Nova Lite)
 - **Communication**: WebSocket (Socket.IO)
 - **Image Processing**: WebRTC API
 
@@ -85,7 +85,7 @@ Access http://localhost:3000 in your browser.
 - Automatic actions triggered by specific phrases like "I found it"
 
 ### Card Recognition
-- Image recognition using Nova Pro (Claude 3 Sonnet Vision)
+- Image recognition using Nova Lite
 - AWS service identification from AWS BuilderCards
 - Automatic photo capture feature (toggleable)
 
