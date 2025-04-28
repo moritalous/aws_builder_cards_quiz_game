@@ -23,6 +23,7 @@ import {
   DefaultTextConfiguration,
   ImageAnalysisToolSchema
 } from "./consts";
+import { ImageAnalyzer } from "./image-analyzer";
 import { InferenceConfig } from "./types";
 
 export interface NovaSonicBidirectionalStreamClientConfig {
@@ -199,6 +200,12 @@ export class NovaSonicBidirectionalStreamClient {
       topP: 0.9,
       temperature: 0.7,
     };
+    
+    // Initialize the image analyzer
+    this.imageAnalyzer = new ImageAnalyzer({
+      credentials: config.clientConfig.credentials,
+      region: config.clientConfig.region || "us-east-1"
+    });
   }
 
   public isSessionActive(sessionId: string): boolean {
@@ -253,30 +260,27 @@ export class NovaSonicBidirectionalStreamClient {
     return new StreamSession(sessionId, this);
   }
 
-  // Variables for image analysis
-  private latestCapturedImage: string | null = null;
-  private autoCapture: boolean = true; // Flag to enable auto capture
+  // Image analyzer instance
+  private imageAnalyzer: ImageAnalyzer;
 
   // Method to set image (callable from outside)
   public setLatestCapturedImage(imageBase64: string): void {
-    this.latestCapturedImage = imageBase64;
-    console.log("Latest captured image updated");
+    this.imageAnalyzer.setLatestCapturedImage(imageBase64);
   }
 
   // Method to get image
   public getLatestCapturedImage(): string | null {
-    return this.latestCapturedImage;
+    return this.imageAnalyzer.getLatestCapturedImage();
   }
 
   // Method to toggle auto capture setting
   public toggleAutoCapture(enable: boolean): void {
-    this.autoCapture = enable;
-    console.log(`Auto capture ${enable ? "enabled" : "disabled"}`);
+    this.imageAnalyzer.toggleAutoCapture(enable);
   }
 
   // Method to get auto capture state
   public isAutoCaptureEnabled(): boolean {
-    return this.autoCapture;
+    return this.imageAnalyzer.isAutoCaptureEnabled();
   }
 
   private async processToolUse(
@@ -288,7 +292,7 @@ export class NovaSonicBidirectionalStreamClient {
     switch (tool) {
       case "analyzeimagetool":
         console.log(`image analysis tool`);
-        return this.analyzeImage(toolUseContent);
+        return this.imageAnalyzer.analyzeImage(toolUseContent);
       default:
         console.log(`Tool ${tool} not supported`);
         throw new Error(`Tool ${tool} not supported`);
@@ -296,88 +300,9 @@ export class NovaSonicBidirectionalStreamClient {
   }
 
   // Image analysis tool implementation
+  // This method is kept for backward compatibility but delegates to ImageAnalyzer
   private async analyzeImage(toolUseContent: any): Promise<Object> {
-    try {
-      // Get query from user (optional)
-      let query = "Describe what you see in this image in detail.";
-      let expectedAnswer = "unknown service";
-      try {
-        if (toolUseContent && toolUseContent.content) {
-          const content =
-            typeof toolUseContent.content === "string"
-              ? JSON.parse(toolUseContent.content)
-              : toolUseContent.content;
-
-          if (content.query) {
-            query = content.query;
-          }
-          if (content.expectedAnswer) {
-            expectedAnswer = content.expectedAnswer;
-          }
-        }
-      } catch (e) {
-        console.error("Error parsing query from tool content:", e);
-      }
-
-      console.log(`Analyzing image with query: ${query}`);
-      console.log(`expectedAnswer: ${expectedAnswer}`);
-
-      // Request photo capture if auto capture is enabled
-      if (this.autoCapture) {
-        console.log("Auto capture is enabled, requesting new photo capture");
-        // Request photo capture via server
-        this.requestPhotoCapture();
-
-        // Wait for photo to be taken (max 3 seconds)
-        let waitTime = 0;
-        const maxWaitTime = 3000; // 3 seconds
-        const interval = 100; // Check every 100ms
-
-        while (!this.latestCapturedImage && waitTime < maxWaitTime) {
-          await new Promise((resolve) => setTimeout(resolve, interval));
-          waitTime += interval;
-        }
-      }
-
-      // Return error if no image available
-      if (!this.latestCapturedImage) {
-        return {
-          error: "No image available. Please take a photo first.",
-          result:
-            "I don't see any image to analyze. Could you take a photo first?",
-        };
-      }
-
-      // Call external multimodal AI
-      const result = await this.callMultimodalAI(
-        this.latestCapturedImage,
-        query,
-      );
-      console.log({
-        imageAnalysisResults: result,
-        answersToQuestionsYouPosed: expectedAnswer
-      })
-
-      return {
-        // success: true,
-        result: result,
-        collect_answer: expectedAnswer
-      };
-    } catch (error) {
-      console.error("Error in image analysis:", error);
-      return {
-        error: error instanceof Error ? error.message : String(error),
-        result:
-          "Sorry, I couldn't analyze the image. There was a technical problem.",
-      };
-    }
-  }
-
-  // Function to request photo capture
-  private requestPhotoCapture(): void {
-    // Emit event to request photo capture via server
-    // Actual implementation is on the server side
-    this.emitEvent("requestPhotoCapture");
+    return this.imageAnalyzer.analyzeImage(toolUseContent);
   }
 
   // Helper method to emit events
@@ -394,70 +319,19 @@ export class NovaSonicBidirectionalStreamClient {
 
   public setEventEmitter(emitter: any): void {
     this.eventEmitter = emitter;
+    // Pass the event emitter to the image analyzer
+    this.imageAnalyzer.setEventEmitter(emitter);
   }
 
-  // Function to call multimodal AI
+  // Function to call multimodal AI - kept for backward compatibility
   private async callMultimodalAI(
     imageBase64: string,
     query: string,
   ): Promise<string> {
-    try {
-      const bedrockRuntime = new BedrockRuntimeClient({
-        region: "us-east-1",
-        credentials: this.bedrockRuntimeClient.config.credentials,
-      });
-
-      // Convert image from base64 to binary
-      const imageData = imageBase64.split(",")[1]; // Remove "data:image/png;base64," part
-
-      let systemPrompt =
-        "You are analyzing AWS BuilderCards for a quiz game. Identify which AWS service is shown on the card. Only respond with the exact AWS service name as shown on the card, including the 'AWS' or 'Amazon' prefix. Be very precise and strict in your identification. If it's not an AWS BuilderCard, say 'Not an AWS BuilderCard'.";
-
-      // Convert Base64 string to binary data
-      const binaryData = Buffer.from(imageData, "base64");
-
-      const response = await bedrockRuntime.send(
-        new ConverseCommand({
-          modelId: "us.amazon.nova-lite-v1:0",
-          system: [{ text: systemPrompt }],
-          messages: [
-            {
-              role: "user",
-              content: [
-                {
-                  text: "What AWS service is shown on this card? Only respond with the exact AWS service name.",
-                },
-                {
-                  image: { format: "png", source: { bytes: binaryData } },
-                },
-              ],
-            },
-          ],
-          inferenceConfig: { maxTokens: 1024 },
-        }),
-      );
-
-      // Check response structure and log
-      console.log("Response structure:", JSON.stringify(response, null, 2));
-
-      // Get text from correct path
-      if (response.output?.message?.content) {
-        const content = response.output.message.content;
-        return content[0].text || "";
-      } else {
-        // Fallback: return full response as JSON if structure is different
-        console.log(
-          "Could not find text in expected structure, returning full response",
-        );
-        return `Response structure unexpected: ${JSON.stringify(response.output?.message?.content)}`;
-      }
-    } catch (error) {
-      console.error("Error calling multimodal AI:", error);
-      throw new Error(
-        "Failed to process image with AI: " +
-        (error instanceof Error ? error.message : String(error)),
-      );
-    }
+    console.warn("callMultimodalAI is deprecated, use ImageAnalyzer instead");
+    // This method is kept for backward compatibility
+    // The implementation is now in ImageAnalyzer
+    return "";
   }
 
   // Stream audio for a specific session
