@@ -27,8 +27,8 @@ import { InferenceConfig } from "./types";
 
 export interface NovaSonicBidirectionalStreamClientConfig {
   requestHandlerConfig?:
-    | NodeHttp2HandlerOptions
-    | Provider<NodeHttp2HandlerOptions | void>;
+  | NodeHttp2HandlerOptions
+  | Provider<NodeHttp2HandlerOptions | void>;
   clientConfig: Partial<BedrockRuntimeClientConfig>;
   inferenceConfig?: InferenceConfig;
 }
@@ -42,7 +42,7 @@ export class StreamSession {
   constructor(
     private sessionId: string,
     private client: NovaSonicBidirectionalStreamClient,
-  ) {}
+  ) { }
 
   // Register event handlers for this specific session
   public onEvent(
@@ -324,6 +324,7 @@ export class NovaSonicBidirectionalStreamClient {
     try {
       // Get query from user (optional)
       let query = "Describe what you see in this image in detail.";
+      let answer = "unknown service";
       try {
         if (toolUseContent && toolUseContent.content) {
           const content =
@@ -333,6 +334,9 @@ export class NovaSonicBidirectionalStreamClient {
 
           if (content.query) {
             query = content.query;
+          }
+          if (content.answer) {
+            answer = content.answer;
           }
         }
       } catch (e) {
@@ -372,17 +376,15 @@ export class NovaSonicBidirectionalStreamClient {
         this.latestCapturedImage,
         query,
       );
+      console.log({
+        imageAnalysisResults: result,
+        answersToQuestionsYouPosed: answer
+      })
 
-      // Compare recognized service with current question service (logging only)
-      const currentService = this.getCurrentQuestionService();
-      console.log(
-        `Comparing recognized service "${result}" with current question service "${currentService}"`,
-      );
-
-      // Return result (in simplified format)
       return {
-        success: true,
+        // success: true,
         result: result,
+        collect_answer: answer
       };
     } catch (error) {
       console.error("Error in image analysis:", error);
@@ -500,7 +502,7 @@ export class NovaSonicBidirectionalStreamClient {
       console.error("Error calling multimodal AI:", error);
       throw new Error(
         "Failed to process image with AI: " +
-          (error instanceof Error ? error.message : String(error)),
+        (error instanceof Error ? error.message : String(error)),
       );
     }
   }
@@ -979,7 +981,7 @@ export class NovaSonicBidirectionalStreamClient {
                 toolSpec: {
                   name: "analyzeImageTool",
                   description:
-                    "Analyze the current camera image and generate a response using a multimodal AI model. Use this tool when the user asks questions like 'what is this?', 'what do you see?', 'describe this photo', 'what's in the picture?', or any question about analyzing the current camera view or recently taken photo.",
+                    "Analyze the current camera image to identify AWS services shown on BuilderCards. ALWAYS use this tool when the user says phrases like 'I found it', 'found it', 'this is it', 'here it is', 'got it', or any similar phrase indicating they have found a card. This tool will take a photo of the card they are showing and identify which AWS service is on it.",
                   inputSchema: {
                     json: ImageAnalysisToolSchema,
                   },
