@@ -1,6 +1,6 @@
 import { AudioPlayer } from "../lib/play/AudioPlayer.js";
-import { socket } from './socket.js';
 import { TARGET_SAMPLE_RATE, isFirefox } from './config.js';
+import { socket } from './socket.js';
 
 // Audio processing variables
 let audioContext;

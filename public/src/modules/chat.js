@@ -8,7 +8,6 @@ let waitingForAssistantResponse = false;
 let waitingForUserTranscription = false;
 let userThinkingIndicator = null;
 let assistantThinkingIndicator = null;
-let transcriptionReceived = false;
 let displayAssistantText = false;
 let role;
 
