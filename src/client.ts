@@ -286,30 +286,6 @@ export class NovaSonicBidirectionalStreamClient {
     const tool = toolName.toLowerCase();
 
     switch (tool) {
-      // case "getdateandtimetool":
-      //   const date = new Date().toLocaleString("en-US", { timeZone: "America/Los_Angeles" });
-      //   const pstDate = new Date(date);
-      //   return {
-      //     date: pstDate.toISOString().split('T')[0],
-      //     year: pstDate.getFullYear(),
-      //     month: pstDate.getMonth() + 1,
-      //     day: pstDate.getDate(),
-      //     dayOfWeek: pstDate.toLocaleString('en-US', { weekday: 'long' }).toUpperCase(),
-      //     timezone: "PST",
-      //     formattedTime: pstDate.toLocaleTimeString('en-US', {
-      //       hour12: true,
-      //       hour: '2-digit',
-      //       minute: '2-digit'
-      //     })
-      //   };
-      // case "getweathertool":
-      //   console.log(`weather tool`)
-      //   const parsedContent = await this.parseToolUseContentForWeather(toolUseContent);
-      //   console.log("parsed content")
-      //   if (!parsedContent) {
-      //     throw new Error('parsedContent is undefined');
-      //   }
-      //   return this.fetchWeatherData(parsedContent?.latitude, parsedContent?.longitude);
       case "analyzeimagetool":
         console.log(`image analysis tool`);
         return this.analyzeImage(toolUseContent);
@@ -324,7 +300,7 @@ export class NovaSonicBidirectionalStreamClient {
     try {
       // Get query from user (optional)
       let query = "Describe what you see in this image in detail.";
-      let answer = "unknown service";
+      let expectedAnswer = "unknown service";
       try {
         if (toolUseContent && toolUseContent.content) {
           const content =
@@ -335,8 +311,8 @@ export class NovaSonicBidirectionalStreamClient {
           if (content.query) {
             query = content.query;
           }
-          if (content.answer) {
-            answer = content.answer;
+          if (content.expectedAnswer) {
+            expectedAnswer = content.expectedAnswer;
           }
         }
       } catch (e) {
@@ -344,6 +320,7 @@ export class NovaSonicBidirectionalStreamClient {
       }
 
       console.log(`Analyzing image with query: ${query}`);
+      console.log(`expectedAnswer: ${expectedAnswer}`);
 
       // Request photo capture if auto capture is enabled
       if (this.autoCapture) {
@@ -378,13 +355,13 @@ export class NovaSonicBidirectionalStreamClient {
       );
       console.log({
         imageAnalysisResults: result,
-        answersToQuestionsYouPosed: answer
+        answersToQuestionsYouPosed: expectedAnswer
       })
 
       return {
         // success: true,
         result: result,
-        collect_answer: answer
+        collect_answer: expectedAnswer
       };
     } catch (error) {
       console.error("Error in image analysis:", error);
@@ -433,15 +410,8 @@ export class NovaSonicBidirectionalStreamClient {
       // Convert image from base64 to binary
       const imageData = imageBase64.split(",")[1]; // Remove "data:image/png;base64," part
 
-      // Get current question service
-      const currentService = this.getCurrentQuestionService();
       let systemPrompt =
         "You are analyzing AWS BuilderCards for a quiz game. Identify which AWS service is shown on the card. Only respond with the exact AWS service name as shown on the card, including the 'AWS' or 'Amazon' prefix. Be very precise and strict in your identification. If it's not an AWS BuilderCard, say 'Not an AWS BuilderCard'.";
-
-      // Add additional context to system prompt if question service is set
-      if (currentService) {
-        systemPrompt += ` The user is currently being asked about ${currentService}, but make sure you identify exactly what's on the card, not what you think should be on the card.`;
-      }
 
       // Convert Base64 string to binary data
       const binaryData = Buffer.from(imageData, "base64");
@@ -481,86 +451,12 @@ export class NovaSonicBidirectionalStreamClient {
         );
         return `Response structure unexpected: ${JSON.stringify(response.output?.message?.content)}`;
       }
-
-      // // Simple implementation (instead of actual AI call)
-      // console.log("Simulating multimodal AI call with image and query:", query);
-
-      // // Add delay to simulate AI processing time
-      // await new Promise(resolve => setTimeout(resolve, 2000));
-
-      // Return different responses based on query
-      // if (query.toLowerCase().includes("person") || query.toLowerCase().includes("people")) {
-      //   return "I can see a person in the image. They appear to be indoors, possibly in a home or office setting. The lighting is good, allowing for clear visibility. The person seems to be facing the camera directly.";
-      // } else if (query.toLowerCase().includes("object") || query.toLowerCase().includes("what")) {
-      //   return "The image shows what appears to be an indoor setting. There are various objects visible, possibly including furniture, electronics, or personal items. The scene is well-lit, suggesting it's either daytime or there's good artificial lighting.";
-      // } else if (query.toLowerCase().includes("color") || query.toLowerCase().includes("colours")) {
-      //   return "The dominant colors in the image appear to be neutral tones, possibly whites, grays, and beiges, which are common in indoor settings. There might be some accent colors from objects or decorations in the scene.";
-      // } else {
-      //   return "I can see an image that appears to be taken indoors. The lighting conditions are good, allowing for clear visibility. This seems to be a personal space, possibly a home or office environment. There are various objects visible in the frame, though without more specific questions, I'm keeping my description general to respect privacy.";
-      // }
     } catch (error) {
       console.error("Error calling multimodal AI:", error);
       throw new Error(
         "Failed to process image with AI: " +
         (error instanceof Error ? error.message : String(error)),
       );
-    }
-  }
-
-  private async parseToolUseContentForWeather(
-    toolUseContent: any,
-  ): Promise<{ latitude: number; longitude: number } | null> {
-    try {
-      // Check if the content field exists and is a string
-      if (toolUseContent && typeof toolUseContent.content === "string") {
-        // Parse the JSON string into an object
-        const parsedContent = JSON.parse(toolUseContent.content);
-        console.log(`parsedContent ${parsedContent}`);
-        // Return the parsed content
-        return {
-          latitude: parsedContent.latitude,
-          longitude: parsedContent.longitude,
-        };
-      }
-      return null;
-    } catch (error) {
-      console.error("Failed to parse tool use content:", error);
-      return null;
-    }
-  }
-
-  private async fetchWeatherData(
-    latitude: number,
-    longitude: number,
-  ): Promise<Record<string, any>> {
-    const ipv4Agent = new https.Agent({ family: 4 });
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`;
-
-    try {
-      const response = await axios.get(url, {
-        httpsAgent: ipv4Agent,
-        timeout: 5000,
-        headers: {
-          "User-Agent": "MyApp/1.0",
-          Accept: "application/json",
-        },
-      });
-      const weatherData = response.data;
-      console.log("weatherData:", weatherData);
-
-      return {
-        weather_data: weatherData,
-      };
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        console.error(`Error fetching weather data: ${error.message}`, error);
-      } else {
-        console.error(
-          `Unexpected error: ${error instanceof Error ? error.message : String(error)} `,
-          error,
-        );
-      }
-      throw error;
     }
   }
 

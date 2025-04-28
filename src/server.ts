@@ -102,26 +102,6 @@ io.on("connection", (socket) => {
 
     session.onEvent("textOutput", (data) => {
       console.log("Text output:", data);
-
-      // Extract the current question service from AI's response (logging only)
-      if (data.role === "ASSISTANT") {
-        const content = data.content || "";
-        const serviceMatch = content.match(/\((.*?)\)/);
-        if (serviceMatch && serviceMatch[1]) {
-          const serviceName = serviceMatch[1].trim();
-          console.log(`Detected question about service: ${serviceName}`);
-          bedrockClient.setCurrentQuestionService(serviceName);
-
-          // Send content without parentheses to client
-          const cleanedContent = content.replace(/\(.*?\)/g, "");
-          socket.emit("textOutput", {
-            ...data,
-            content: cleanedContent,
-          });
-          return;
-        }
-      }
-
       // Send normal text output to client
       socket.emit("textOutput", data);
     });
