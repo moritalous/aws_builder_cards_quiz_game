@@ -129,6 +129,8 @@ export class ImageAnalyzer {
         const maxWaitTime = 3000; // 3 seconds
         const interval = 100; // Check every 100ms
 
+        this.latestCapturedImage = null;
+
         while (!this.latestCapturedImage && waitTime < maxWaitTime) {
           await new Promise((resolve) => setTimeout(resolve, interval));
           waitTime += interval;
