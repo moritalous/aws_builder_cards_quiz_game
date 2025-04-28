@@ -1,7 +1,6 @@
 import {
   BedrockRuntimeClient,
   BedrockRuntimeClientConfig,
-  ConverseCommand,
   InvokeModelWithBidirectionalStreamCommand,
   InvokeModelWithBidirectionalStreamInput
 } from "@aws-sdk/client-bedrock-runtime";
@@ -10,8 +9,6 @@ import {
   NodeHttp2HandlerOptions,
 } from "@smithy/node-http-handler";
 import { Provider } from "@smithy/types";
-import axios from "axios";
-import https from "https";
 import { Buffer } from "node:buffer";
 import { randomUUID } from "node:crypto";
 import { firstValueFrom, Subject } from "rxjs";
