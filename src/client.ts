@@ -13,12 +13,11 @@ import { randomUUID } from "node:crypto";
 import { Subject } from "rxjs";
 import {
   DefaultAudioInputConfiguration,
-  DefaultAudioOutputConfiguration,
   DefaultSystemPrompt,
   DefaultTextConfiguration,
-  ImageAnalysisToolSchema
 } from "./consts";
 import { EventDispatcher } from "./event-dispatcher";
+import { EventGenerator } from "./event-generator";
 import { ImageAnalyzer } from "./image-analyzer";
 import { SessionData } from "./session-types";
 import { StreamHandler } from "./stream-handler";
@@ -40,7 +39,7 @@ export class NovaSonicBidirectionalStreamClient {
   private activeSessions: Map<string, SessionData> = new Map();
   private sessionLastActivity: Map<string, number> = new Map();
   private sessionCleanupInProgress = new Set<string>();
-  
+
   // Image analyzer instance
   private imageAnalyzer: ImageAnalyzer;
   // Tool processor
@@ -77,7 +76,7 @@ export class NovaSonicBidirectionalStreamClient {
       credentials: config.clientConfig.credentials,
       region: config.clientConfig.region || "us-east-1"
     });
-    
+
     // Initialize the tool processor
     this.toolProcessor = new ToolProcessor(this.imageAnalyzer);
   }
@@ -253,53 +252,25 @@ export class NovaSonicBidirectionalStreamClient {
 
   // Set up initial events for a session
   private setupSessionStartEvent(sessionId: string): void {
-    console.log(`Setting up initial events for session ${sessionId}...`);
     const session = this.activeSessions.get(sessionId);
     if (!session) return;
 
-    // Session start event
-    this.addEventToSessionQueue(sessionId, {
-      event: {
-        sessionStart: {
-          inferenceConfiguration: session.inferenceConfig,
-        },
-      },
-    });
+    EventGenerator.setupSessionStartEvent(
+      sessionId,
+      session,
+      (sid, event) => this.addEventToSessionQueue(sid, event)
+    );
   }
+
   public setupPromptStartEvent(sessionId: string): void {
-    console.log(`Setting up prompt start event for session ${sessionId}...`);
     const session = this.activeSessions.get(sessionId);
     if (!session) return;
-    // Prompt start event
-    this.addEventToSessionQueue(sessionId, {
-      event: {
-        promptStart: {
-          promptName: session.promptName,
-          textOutputConfiguration: {
-            mediaType: "text/plain",
-          },
-          audioOutputConfiguration: DefaultAudioOutputConfiguration,
-          toolUseOutputConfiguration: {
-            mediaType: "application/json",
-          },
-          toolConfiguration: {
-            tools: [
-              {
-                toolSpec: {
-                  name: "analyzeImageTool",
-                  description:
-                    "Analyze the current camera image to identify AWS services shown on BuilderCards. ALWAYS use this tool when the user says phrases like 'I found it', 'found it', 'this is it', 'here it is', 'got it', or any similar phrase indicating they have found a card. This tool will take a photo of the card they are showing and identify which AWS service is on it.",
-                  inputSchema: {
-                    json: ImageAnalysisToolSchema,
-                  },
-                },
-              },
-            ],
-          },
-        },
-      },
-    });
-    session.isPromptStartSent = true;
+
+    EventGenerator.setupPromptStartEvent(
+      sessionId,
+      session,
+      (sid, event) => this.addEventToSessionQueue(sid, event)
+    );
   }
 
   public setupSystemPromptEvent(
@@ -307,72 +278,31 @@ export class NovaSonicBidirectionalStreamClient {
     textConfig: typeof DefaultTextConfiguration = DefaultTextConfiguration,
     systemPromptContent: string = DefaultSystemPrompt,
   ): void {
-    console.log(`Setting up systemPrompt events for session ${sessionId}...`);
     const session = this.activeSessions.get(sessionId);
     if (!session) return;
-    // Text content start
-    const textPromptID = randomUUID();
-    this.addEventToSessionQueue(sessionId, {
-      event: {
-        contentStart: {
-          promptName: session.promptName,
-          contentName: textPromptID,
-          type: "TEXT",
-          interactive: true,
-          role: "SYSTEM",
-          textInputConfiguration: textConfig,
-        },
-      },
-    });
 
-    // Text input content
-    this.addEventToSessionQueue(sessionId, {
-      event: {
-        textInput: {
-          promptName: session.promptName,
-          contentName: textPromptID,
-          content: systemPromptContent,
-        },
-      },
-    });
-
-    // Text content end
-    this.addEventToSessionQueue(sessionId, {
-      event: {
-        contentEnd: {
-          promptName: session.promptName,
-          contentName: textPromptID,
-        },
-      },
-    });
+    EventGenerator.setupSystemPromptEvent(
+      sessionId,
+      session,
+      (sid, event) => this.addEventToSessionQueue(sid, event),
+      textConfig,
+      systemPromptContent
+    );
   }
 
   public setupStartAudioEvent(
     sessionId: string,
     audioConfig: typeof DefaultAudioInputConfiguration = DefaultAudioInputConfiguration,
   ): void {
-    console.log(
-      `Setting up startAudioContent event for session ${sessionId}...`,
-    );
     const session = this.activeSessions.get(sessionId);
     if (!session) return;
 
-    console.log(`Using audio content ID: ${session.audioContentId}`);
-    // Audio content start
-    this.addEventToSessionQueue(sessionId, {
-      event: {
-        contentStart: {
-          promptName: session.promptName,
-          contentName: session.audioContentId,
-          type: "AUDIO",
-          interactive: true,
-          role: "USER",
-          audioInputConfiguration: audioConfig,
-        },
-      },
-    });
-    session.isAudioContentStartSent = true;
-    console.log(`Initial events setup complete for session ${sessionId}`);
+    EventGenerator.setupStartAudioEvent(
+      sessionId,
+      session,
+      (sid, event) => this.addEventToSessionQueue(sid, event),
+      audioConfig
+    );
   }
 
   // Stream an audio chunk for a session
@@ -381,21 +311,16 @@ export class NovaSonicBidirectionalStreamClient {
     audioData: Buffer,
   ): Promise<void> {
     const session = this.activeSessions.get(sessionId);
-    if (!session || !session.isActive || !session.audioContentId) {
-      throw new Error(`Invalid session ${sessionId} for audio streaming`);
+    if (!session) {
+      throw new Error(`Session ${sessionId} not found for audio streaming`);
     }
-    // Convert audio to base64
-    const base64Data = audioData.toString("base64");
 
-    this.addEventToSessionQueue(sessionId, {
-      event: {
-        audioInput: {
-          promptName: session.promptName,
-          contentName: session.audioContentId,
-          content: base64Data,
-        },
-      },
-    });
+    EventGenerator.streamAudioChunk(
+      sessionId,
+      session,
+      audioData,
+      (sid, event) => this.addEventToSessionQueue(sid, event)
+    );
   }
 
   // Send tool result back to the model
@@ -405,105 +330,48 @@ export class NovaSonicBidirectionalStreamClient {
     result: any,
   ): Promise<void> {
     const session = this.activeSessions.get(sessionId);
-    console.log("inside tool result");
-    if (!session || !session.isActive) return;
+    if (!session) return;
 
-    console.log(
-      `Sending tool result for session ${sessionId}, tool use ID: ${toolUseId}`,
+    EventGenerator.sendToolResult(
+      sessionId,
+      session,
+      toolUseId,
+      result,
+      (sid, event) => this.addEventToSessionQueue(sid, event)
     );
-    const contentId = randomUUID();
-
-    // Tool content start
-    this.addEventToSessionQueue(sessionId, {
-      event: {
-        contentStart: {
-          promptName: session.promptName,
-          contentName: contentId,
-          interactive: false,
-          type: "TOOL",
-          role: "TOOL",
-          toolResultInputConfiguration: {
-            toolUseId: toolUseId,
-            type: "TEXT",
-            textInputConfiguration: {
-              mediaType: "text/plain",
-            },
-          },
-        },
-      },
-    });
-
-    // Tool content input
-    const resultContent =
-      typeof result === "string" ? result : JSON.stringify(result);
-    this.addEventToSessionQueue(sessionId, {
-      event: {
-        toolResult: {
-          promptName: session.promptName,
-          contentName: contentId,
-          content: resultContent,
-        },
-      },
-    });
-
-    // Tool content end
-    this.addEventToSessionQueue(sessionId, {
-      event: {
-        contentEnd: {
-          promptName: session.promptName,
-          contentName: contentId,
-        },
-      },
-    });
-
-    console.log(`Tool result sent for session ${sessionId}`);
   }
 
   public async sendContentEnd(sessionId: string): Promise<void> {
     const session = this.activeSessions.get(sessionId);
-    if (!session || !session.isAudioContentStartSent) return;
+    if (!session) return;
 
-    await this.addEventToSessionQueue(sessionId, {
-      event: {
-        contentEnd: {
-          promptName: session.promptName,
-          contentName: session.audioContentId,
-        },
-      },
-    });
-
-    // Wait to ensure it's processed
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    await EventGenerator.sendContentEnd(
+      sessionId,
+      session,
+      (sid, event) => this.addEventToSessionQueue(sid, event)
+    );
   }
 
   public async sendPromptEnd(sessionId: string): Promise<void> {
     const session = this.activeSessions.get(sessionId);
-    if (!session || !session.isPromptStartSent) return;
+    if (!session) return;
 
-    await this.addEventToSessionQueue(sessionId, {
-      event: {
-        promptEnd: {
-          promptName: session.promptName,
-        },
-      },
-    });
-
-    // Wait to ensure it's processed
-    await new Promise((resolve) => setTimeout(resolve, 300));
+    await EventGenerator.sendPromptEnd(
+      sessionId,
+      session,
+      (sid, event) => this.addEventToSessionQueue(sid, event)
+    );
   }
 
   public async sendSessionEnd(sessionId: string): Promise<void> {
     const session = this.activeSessions.get(sessionId);
     if (!session) return;
 
-    await this.addEventToSessionQueue(sessionId, {
-      event: {
-        sessionEnd: {},
-      },
-    });
-
-    // Wait to ensure it's processed
-    await new Promise((resolve) => setTimeout(resolve, 300));
+    await EventGenerator.sendSessionEnd(
+      sessionId,
+      session,
+      (sid, event) => this.addEventToSessionQueue(sid, event)
+    );
 
     // Now it's safe to clean up
     session.isActive = false;
