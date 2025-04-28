@@ -20,7 +20,11 @@ import {
   DefaultTextConfiguration,
   ImageAnalysisToolSchema
 } from "./consts";
+import { EventDispatcher } from "./event-dispatcher";
 import { ImageAnalyzer } from "./image-analyzer";
+import { SessionData } from "./session-types";
+import { StreamSession } from "./stream-session";
+import { ToolProcessor } from "./tool-processor";
 import { InferenceConfig } from "./types";
 
 export interface NovaSonicBidirectionalStreamClientConfig {
@@ -31,146 +35,17 @@ export interface NovaSonicBidirectionalStreamClientConfig {
   inferenceConfig?: InferenceConfig;
 }
 
-export class StreamSession {
-  private audioBufferQueue: Buffer[] = [];
-  private maxQueueSize = 200; // Maximum number of audio chunks to queue
-  private isProcessingAudio = false;
-  private isActive = true;
-
-  constructor(
-    private sessionId: string,
-    private client: NovaSonicBidirectionalStreamClient,
-  ) { }
-
-  // Register event handlers for this specific session
-  public onEvent(
-    eventType: string,
-    handler: (data: any) => void,
-  ): StreamSession {
-    this.client.registerEventHandler(this.sessionId, eventType, handler);
-    return this; // For chaining
-  }
-
-  public async setupPromptStart(): Promise<void> {
-    this.client.setupPromptStartEvent(this.sessionId);
-  }
-
-  public async setupSystemPrompt(
-    textConfig: typeof DefaultTextConfiguration = DefaultTextConfiguration,
-    systemPromptContent: string = DefaultSystemPrompt,
-  ): Promise<void> {
-    this.client.setupSystemPromptEvent(
-      this.sessionId,
-      textConfig,
-      systemPromptContent,
-    );
-  }
-
-  public async setupStartAudio(
-    audioConfig: typeof DefaultAudioInputConfiguration = DefaultAudioInputConfiguration,
-  ): Promise<void> {
-    this.client.setupStartAudioEvent(this.sessionId, audioConfig);
-  }
-
-  // Stream audio for this session
-  public async streamAudio(audioData: Buffer): Promise<void> {
-    // Check queue size to avoid memory issues
-    if (this.audioBufferQueue.length >= this.maxQueueSize) {
-      // Queue is full, drop oldest chunk
-      this.audioBufferQueue.shift();
-      console.log("Audio queue full, dropping oldest chunk");
-    }
-
-    // Queue the audio chunk for streaming
-    this.audioBufferQueue.push(audioData);
-    this.processAudioQueue();
-  }
-
-  // Process audio queue for continuous streaming
-  private async processAudioQueue() {
-    if (
-      this.isProcessingAudio ||
-      this.audioBufferQueue.length === 0 ||
-      !this.isActive
-    )
-      return;
-
-    this.isProcessingAudio = true;
-    try {
-      // Process all chunks in the queue, up to a reasonable limit
-      let processedChunks = 0;
-      const maxChunksPerBatch = 5; // Process max 5 chunks at a time to avoid overload
-
-      while (
-        this.audioBufferQueue.length > 0 &&
-        processedChunks < maxChunksPerBatch &&
-        this.isActive
-      ) {
-        const audioChunk = this.audioBufferQueue.shift();
-        if (audioChunk) {
-          await this.client.streamAudioChunk(this.sessionId, audioChunk);
-          processedChunks++;
-        }
-      }
-    } finally {
-      this.isProcessingAudio = false;
-
-      // If there are still items in the queue, schedule the next processing using setTimeout
-      if (this.audioBufferQueue.length > 0 && this.isActive) {
-        setTimeout(() => this.processAudioQueue(), 0);
-      }
-    }
-  }
-  // Get session ID
-  public getSessionId(): string {
-    return this.sessionId;
-  }
-
-  public async endAudioContent(): Promise<void> {
-    if (!this.isActive) return;
-    await this.client.sendContentEnd(this.sessionId);
-  }
-
-  public async endPrompt(): Promise<void> {
-    if (!this.isActive) return;
-    await this.client.sendPromptEnd(this.sessionId);
-  }
-
-  public async close(): Promise<void> {
-    if (!this.isActive) return;
-
-    this.isActive = false;
-    this.audioBufferQueue = []; // Clear any pending audio
-
-    await this.client.sendSessionEnd(this.sessionId);
-    console.log(`Session ${this.sessionId} close completed`);
-  }
-}
-
-// Session data type
-interface SessionData {
-  queue: Array<any>;
-  queueSignal: Subject<void>;
-  closeSignal: Subject<void>;
-  responseSubject: Subject<any>;
-  toolUseContent: any;
-  toolUseId: string;
-  toolName: string;
-  responseHandlers: Map<string, (data: any) => void>;
-  promptName: string;
-  inferenceConfig: InferenceConfig;
-  isActive: boolean;
-  isPromptStartSent: boolean;
-  isAudioContentStartSent: boolean;
-  audioContentId: string;
-}
-
 export class NovaSonicBidirectionalStreamClient {
   private bedrockRuntimeClient: BedrockRuntimeClient;
   private inferenceConfig: InferenceConfig;
   private activeSessions: Map<string, SessionData> = new Map();
   private sessionLastActivity: Map<string, number> = new Map();
   private sessionCleanupInProgress = new Set<string>();
+
+  // Image analyzer instance
+  private imageAnalyzer: ImageAnalyzer;
+  // Tool processor
+  private toolProcessor: ToolProcessor;
 
   constructor(config: NovaSonicBidirectionalStreamClientConfig) {
     const nodeHttp2Handler = new NodeHttp2Handler({
@@ -203,6 +78,9 @@ export class NovaSonicBidirectionalStreamClient {
       credentials: config.clientConfig.credentials,
       region: config.clientConfig.region || "us-east-1"
     });
+
+    // Initialize the tool processor
+    this.toolProcessor = new ToolProcessor(this.imageAnalyzer);
   }
 
   public isSessionActive(sessionId: string): boolean {
@@ -257,9 +135,6 @@ export class NovaSonicBidirectionalStreamClient {
     return new StreamSession(sessionId, this);
   }
 
-  // Image analyzer instance
-  private imageAnalyzer: ImageAnalyzer;
-
   // Method to set image (callable from outside)
   public setLatestCapturedImage(imageBase64: string): void {
     this.imageAnalyzer.setLatestCapturedImage(imageBase64);
@@ -284,16 +159,7 @@ export class NovaSonicBidirectionalStreamClient {
     toolName: string,
     toolUseContent: any,
   ): Promise<Object> {
-    const tool = toolName.toLowerCase();
-
-    switch (tool) {
-      case "analyzeimagetool":
-        console.log(`image analysis tool`);
-        return this.imageAnalyzer.analyzeImage(toolUseContent);
-      default:
-        console.log(`Tool ${tool} not supported`);
-        throw new Error(`Tool ${tool} not supported`);
-    }
+    return this.toolProcessor.processToolUse(toolName, toolUseContent);
   }
 
   public setEventEmitter(emitter: any): void {
@@ -353,27 +219,7 @@ export class NovaSonicBidirectionalStreamClient {
     const session = this.activeSessions.get(sessionId);
     if (!session) return;
 
-    const handler = session.responseHandlers.get(eventType);
-    if (handler) {
-      try {
-        handler(data);
-      } catch (e) {
-        console.error(
-          `Error in ${eventType} handler for session ${sessionId}: `,
-          e,
-        );
-      }
-    }
-
-    // Also dispatch to "any" handlers
-    const anyHandler = session.responseHandlers.get("any");
-    if (anyHandler) {
-      try {
-        anyHandler({ type: eventType, data });
-      } catch (e) {
-        console.error(`Error in 'any' handler for session ${sessionId}: `, e);
-      }
-    }
+    EventDispatcher.dispatchEventForSession(session, sessionId, eventType, data);
   }
 
   private createSessionAsyncIterable(
@@ -944,27 +790,7 @@ export class NovaSonicBidirectionalStreamClient {
     const session = this.activeSessions.get(sessionId);
     if (!session) return;
 
-    const handler = session.responseHandlers.get(eventType);
-    if (handler) {
-      try {
-        handler(data);
-      } catch (e) {
-        console.error(
-          `Error in ${eventType} handler for session ${sessionId}:`,
-          e,
-        );
-      }
-    }
-
-    // Also dispatch to "any" handlers
-    const anyHandler = session.responseHandlers.get("any");
-    if (anyHandler) {
-      try {
-        anyHandler({ type: eventType, data });
-      } catch (e) {
-        console.error(`Error in 'any' handler for session ${sessionId}:`, e);
-      }
-    }
+    EventDispatcher.dispatchEventForSession(session, sessionId, eventType, data);
   }
 
   public async closeSession(sessionId: string): Promise<void> {
