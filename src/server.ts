@@ -102,49 +102,12 @@ io.on("connection", (socket) => {
 
     session.onEvent("textOutput", (data) => {
       console.log("Text output:", data);
-
-      // Extract the current question service from AI's response (logging only)
-      if (data.role === "ASSISTANT") {
-        const content = data.content || "";
-        const serviceMatch = content.match(/\[\[\[(.*?)\]\]\]/);
-        if (serviceMatch && serviceMatch[1]) {
-          const serviceName = serviceMatch[1].trim();
-          console.log(`Detected question about service: ${serviceName}`);
-          bedrockClient.setCurrentQuestionService(serviceName);
-
-          // Send content without triple brackets to client
-          const cleanedContent = content.replace(/\[\[\[.*?\]\]\]/g, "");
-          socket.emit("textOutput", {
-            ...data,
-            content: cleanedContent,
-          });
-          return;
-        }
-      }
-
-      // Check user's speech content
-      if (data.role === "USER") {
-        const userText = data.content.toLowerCase();
-
-        // Detect trigger phrases like "I found it"
-        const isPhotoTrigger = PHOTO_TRIGGER_PHRASES.some((phrase) =>
-          userText.includes(phrase),
-        );
-
-        if (isPhotoTrigger && bedrockClient.isAutoCaptureEnabled()) {
-          console.log(
-            "Photo trigger phrase detected, requesting photo capture",
-          );
-          io.to(socket.id).emit("takePhotoRequest");
-        }
-      }
-
       // Send normal text output to client
       socket.emit("textOutput", data);
     });
 
     session.onEvent("audioOutput", (data) => {
-      console.log("Audio output received, sending to client");
+      // console.log("Audio output received, sending to client");
       socket.emit("audioOutput", data);
     });
 

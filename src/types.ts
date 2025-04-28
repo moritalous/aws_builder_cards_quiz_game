@@ -30,3 +30,12 @@ export interface ToolConfiguration {
     readonly mediaType: "text/plain";
   };
 }
+
+/**
+ * Interface for image analysis results
+ */
+export interface ImageAnalysisResult {
+  result: string;
+  collect_answer?: string;
+  error?: string;
+}
