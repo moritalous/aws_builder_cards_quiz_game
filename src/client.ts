@@ -197,7 +197,7 @@ export class NovaSonicBidirectionalStreamClient {
       topP: 0.9,
       temperature: 0.7,
     };
-    
+
     // Initialize the image analyzer
     this.imageAnalyzer = new ImageAnalyzer({
       credentials: config.clientConfig.credentials,
@@ -296,39 +296,9 @@ export class NovaSonicBidirectionalStreamClient {
     }
   }
 
-  // Image analysis tool implementation
-  // This method is kept for backward compatibility but delegates to ImageAnalyzer
-  private async analyzeImage(toolUseContent: any): Promise<Object> {
-    return this.imageAnalyzer.analyzeImage(toolUseContent);
-  }
-
-  // Helper method to emit events
-  private emitEvent(eventName: string, data: any = {}): void {
-    // The server using this class instance listens for this event
-    // and forwards it to clients via Socket.IO
-    if (this.eventEmitter) {
-      this.eventEmitter.emit(eventName, data);
-    }
-  }
-
-  // Event emitter setup
-  private eventEmitter: any = null;
-
   public setEventEmitter(emitter: any): void {
-    this.eventEmitter = emitter;
     // Pass the event emitter to the image analyzer
     this.imageAnalyzer.setEventEmitter(emitter);
-  }
-
-  // Function to call multimodal AI - kept for backward compatibility
-  private async callMultimodalAI(
-    imageBase64: string,
-    query: string,
-  ): Promise<string> {
-    console.warn("callMultimodalAI is deprecated, use ImageAnalyzer instead");
-    // This method is kept for backward compatibility
-    // The implementation is now in ImageAnalyzer
-    return "";
   }
 
   // Stream audio for a specific session
@@ -726,24 +696,6 @@ export class NovaSonicBidirectionalStreamClient {
           },
           toolConfiguration: {
             tools: [
-              // {
-              //   toolSpec: {
-              //     name: "getDateAndTimeTool",
-              //     description: "Get information about the current date and time.",
-              //     inputSchema: {
-              //       json: DefaultToolSchema
-              //     }
-              //   }
-              // },
-              // {
-              //   toolSpec: {
-              //     name: "getWeatherTool",
-              //     description: "Get the current weather for a given location, based on its WGS84 coordinates.",
-              //     inputSchema: {
-              //       json: WeatherToolSchema
-              //     }
-              //   }
-              // },
               {
                 toolSpec: {
                   name: "analyzeImageTool",
