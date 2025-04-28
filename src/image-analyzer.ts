@@ -1,4 +1,5 @@
 import { BedrockRuntimeClient, ConverseCommand } from "@aws-sdk/client-bedrock-runtime";
+import { Provider } from "@smithy/types";
 import { Buffer } from "node:buffer";
 
 /**
@@ -12,7 +13,7 @@ import { Buffer } from "node:buffer";
 
 export interface ImageAnalyzerConfig {
   credentials: any;
-  region: string;
+  region: string | Provider<string>;
   eventEmitter?: any;
 }
 
