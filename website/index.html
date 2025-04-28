@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="AWS BuilderCards Quiz Game - 音声対話型のAWSサービスクイズゲーム">
+    <title>AWS BuilderCards Quiz Game</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #3F51B5;
+            --accent-color: #4CAF50;
+            --light-gray: #f8f9fa;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+        }
+        
+        .navbar {
+            background-color: var(--primary-color);
+        }
+        
+        .hero {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #303F9F 100%);
+            color: white;
+            padding: 100px 0;
+            text-align: center;
+        }
+        
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+        
+        .btn-primary {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+        
+        .btn-primary:hover {
+            background-color: #43A047;
+            border-color: #43A047;
+        }
+        
+        .feature-icon {
+            font-size: 3rem;
+            color: var(--accent-color);
+            margin-bottom: 20px;
+        }
+        
+        .section-title {
+            color: var(--primary-color);
+            margin-bottom: 40px;
+            position: relative;
+            padding-bottom: 15px;
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 3px;
+            background-color: var(--accent-color);
+        }
+        
+        .bg-light-gray {
+            background-color: var(--light-gray);
+        }
+        
+        .card {
+            border: none;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+            height: 100%;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .tech-icon {
+            height: 60px;
+            object-fit: contain;
+            margin-bottom: 15px;
+        }
+        
+        .code-block {
+            background-color: #f5f5f5;
+            padding: 20px;
+            border-radius: 5px;
+            font-family: monospace;
+            overflow-x: auto;
+        }
+        
+        footer {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 30px 0;
+        }
+        
+        .social-icon {
+            color: white;
+            font-size: 1.5rem;
+            margin: 0 10px;
+            transition: color 0.3s;
+        }
+        
+        .social-icon:hover {
+            color: var(--accent-color);
+        }
+    </style>
+</head>
+<body>
+    <!-- ナビゲーションバー -->
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="#">AWS BuilderCards Quiz Game</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#features">機能</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#demo">デモ</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#how-to-use">使い方</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#tech-stack">技術スタック</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#installation">インストール</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ヒーローセクション -->
+    <section class="hero">
+        <div class="container">
+            <h1>AWS BuilderCards Quiz Game</h1>
+            <p class="lead mb-4">Amazon Nova SonicとNova Liteを活用した音声対話型クイズゲーム</p>
+            <div class="d-flex justify-content-center">
+                <a href="https://github.com/moritalous/aws_builder_cards_quiz_game" class="btn btn-primary me-3" target="_blank" rel="noopener noreferrer">
+                    <i class="fab fa-github"></i> GitHubで見る
+                </a>
+                <a href="#demo" class="btn btn-outline-light">
+                    <i class="fas fa-play-circle"></i> デモを見る
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- 機能紹介セクション -->
+    <section class="py-5" id="features">
+        <div class="container">
+            <h2 class="text-center section-title">主な機能</h2>
+            <div class="row g-4">
+                <div class="col-md-3">
+                    <div class="card text-center p-4 h-100">
+                        <div class="card-body">
+                            <i class="fas fa-microphone feature-icon"></i>
+                            <h3>音声対話</h3>
+                            <p>Nova Sonicを使用した自然な音声対話でゲームを進行します</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center p-4 h-100">
+                        <div class="card-body">
+                            <i class="fas fa-camera feature-icon"></i>
+                            <h3>カード認識</h3>
+                            <p>Nova Liteを使用してAWS BuilderCardsを認識します</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center p-4 h-100">
+                        <div class="card-body">
+                            <i class="fas fa-gamepad feature-icon"></i>
+                            <h3>クイズゲーム</h3>
+                            <p>AWSサービスの説明を聞いて正しいカードを見つけ出すゲームです</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center p-4 h-100">
+                        <div class="card-body">
+                            <i class="fas fa-camera-retro feature-icon"></i>
+                            <h3>自動写真撮影</h3>
+                            <p>「I found it」などの特定のフレーズで自動的に写真を撮影します</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- デモ動画セクション -->
+    <section class="py-5 bg-light-gray" id="demo">
+        <div class="container">
+            <h2 class="text-center section-title">デモ動画</h2>
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="ratio ratio-16x9">
+                        <!-- YouTubeの埋め込みリンクを設定してください -->
+                        <iframe src="https://www.youtube.com/embed/8LD7oWokI_E?si=MU14VU4daKFeydfB" title="AWS BuilderCards Quiz Game Demo" allowfullscreen></iframe>
+                    </div>
+                    <p class="text-center mt-3">
+                        <a href="https://www.youtube.com/embed/8LD7oWokI_E?si=MU14VU4daKFeydfB" class="btn btn-danger" target="_blank" rel="noopener noreferrer">
+                            <i class="fab fa-youtube"></i> YouTubeチャンネルを見る
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 使い方セクション -->
+    <section class="py-5" id="how-to-use">
+        <div class="container">
+            <h2 class="text-center section-title">使い方</h2>
+            <div class="row justify-content-center">
+                <div class="col-lg-10">
+                    <div class="game-flow-container position-relative mb-5">
+                        <div class="game-flow-path"></div>
+                        
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="game-step text-center">
+                                    <div class="step-icon-container">
+                                        <i class="fas fa-video fa-2x step-icon"></i>
+                                        <span class="step-number">1</span>
+                                    </div>
+                                    <h4 class="mt-3">カメラ起動</h4>
+                                    <p>"Start Camera"ボタンをクリック</p>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-3">
+                                <div class="game-step text-center">
+                                    <div class="step-icon-container">
+                                        <i class="fas fa-microphone-alt fa-2x step-icon"></i>
+                                        <span class="step-number">2</span>
+                                    </div>
+                                    <h4 class="mt-3">音声対話開始</h4>
+                                    <p>"Start Streaming"ボタンをクリック</p>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-3">
+                                <div class="game-step text-center">
+                                    <div class="step-icon-container">
+                                        <i class="fas fa-play-circle fa-2x step-icon"></i>
+                                        <span class="step-number">3</span>
+                                    </div>
+                                    <h4 class="mt-3">ゲーム開始</h4>
+                                    <p>「Let's start」と話しかける</p>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-3">
+                                <div class="game-step text-center">
+                                    <div class="step-icon-container">
+                                        <i class="fas fa-headphones fa-2x step-icon"></i>
+                                        <span class="step-number">4</span>
+                                    </div>
+                                    <h4 class="mt-3">問題を聞く</h4>
+                                    <p>Nova Sonicが説明を読み上げる</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-5">
+                            <div class="col-md-3 order-md-4">
+                                <div class="game-step text-center">
+                                    <div class="step-icon-container">
+                                        <i class="fas fa-search fa-2x step-icon"></i>
+                                        <span class="step-number">5</span>
+                                    </div>
+                                    <h4 class="mt-3">カードを探す</h4>
+                                    <p>「I found it」と言ってカードを見せる</p>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-3 order-md-3">
+                                <div class="game-step text-center">
+                                    <div class="step-icon-container">
+                                        <i class="fas fa-robot fa-2x step-icon"></i>
+                                        <span class="step-number">6</span>
+                                    </div>
+                                    <h4 class="mt-3">カード認識</h4>
+                                    <p>Nova Liteがカードを認識</p>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-3 order-md-2">
+                                <div class="game-step text-center">
+                                    <div class="step-icon-container">
+                                        <i class="fas fa-check-circle fa-2x step-icon"></i>
+                                        <span class="step-number">7</span>
+                                    </div>
+                                    <h4 class="mt-3">結果確認</h4>
+                                    <p>Nova Sonicが正誤を判定</p>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-3 order-md-1">
+                                <div class="game-step text-center">
+                                    <div class="step-icon-container">
+                                        <i class="fas fa-forward fa-2x step-icon"></i>
+                                        <span class="step-number">8</span>
+                                    </div>
+                                    <h4 class="mt-3">次の問題へ</h4>
+                                    <p>「Next question」と言って進む</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center mt-4">
+                        <img src="https://github.com/user-attachments/assets/f32d0e03-a465-40e0-bf80-48b48a0c55c0" alt="AWS BuilderCards Quiz Game使用イメージ" class="img-fluid rounded shadow">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <style>
+        .game-flow-container {
+            padding: 30px 0;
+            overflow: hidden;
+        }
+        
+        .game-flow-path {
+            position: absolute;
+            top: 50%;
+            left: 20%;
+            width: 60%;
+            height: 6px;
+            background: linear-gradient(90deg, var(--accent-color), var(--primary-color), var(--accent-color));
+            transform: translateY(-50%);
+            z-index: 0;
+            border-radius: 3px;
+        }
+        
+        .game-step {
+            position: relative;
+            z-index: 1;
+            padding: 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .game-step:hover {
+            transform: translateY(-10px);
+        }
+        
+        .step-icon-container {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+            position: relative;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border: 3px solid var(--accent-color);
+        }
+        
+        .step-icon {
+            color: var(--primary-color);
+        }
+        
+        .step-number {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: var(--accent-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        
+        .game-step h4 {
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+        
+        @media (max-width: 768px) {
+            .game-flow-path {
+                display: none;
+            }
+            
+            .game-step {
+                margin-bottom: 30px;
+            }
+            
+            .order-md-1, .order-md-2, .order-md-3, .order-md-4 {
+                order: unset;
+            }
+        }
+    </style>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- インストール手順セクション -->
+    <section class="py-5" id="installation">
+        <div class="container">
+            <h2 class="text-center section-title">インストール手順</h2>
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h5 class="mb-3">前提条件</h5>
+                            <ul class="mb-4">
+                                <li>Node.js (v14以上)</li>
+                                <li>AWSアカウント (Amazon Bedrockへのアクセス権限が必要)</li>
+                                <li>AWS CLI (設定済み)</li>
+                                <li>AWS BuilderCards</li>
+                            </ul>
+                            
+                            <h5 class="mb-3">インストール</h5>
+                            <div class="code-block mb-4">
+                                git clone https://github.com/moritalous/aws_builder_cards_quiz_game.git<br>
+                                cd aws_builder_cards_quiz_game<br>
+                                npm install
+                            </div>
+                            
+                            <h5 class="mb-3">環境変数の設定</h5>
+                            <div class="code-block mb-4">
+                                export AWS_PROFILE=&lt;your-profile&gt;<br>
+                                export AWS_REGION=us-east-1
+                            </div>
+                            
+                            <h5 class="mb-3">実行</h5>
+                            <div class="code-block">
+                                npm run dev
+                            </div>
+                            <p class="mt-2">ブラウザで http://localhost:3000 にアクセスしてください。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- フッター -->
+    <footer class="text-center">
+        <div class="container">
+            <p>© 2025 moritalous</p>
+            <div class="social-links">
+                <a href="https://github.com/moritalous/aws_builder_cards_quiz_game" class="social-icon" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-github"></i></a>
+                <a href="https://www.youtube.com/channel/UC7nIhmbXt8rwHmWBI2goL2A" class="social-icon" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-youtube"></i></a>
+                <a href="https://x.com/moritalous" class="social-icon" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-x-twitter"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
