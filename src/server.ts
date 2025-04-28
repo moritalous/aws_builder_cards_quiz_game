@@ -17,15 +17,6 @@ const io = new Server(server);
 // EventEmitter for client-server communication
 const eventEmitter = new (require("events").EventEmitter)();
 
-// Keywords for detecting voice commands
-const PHOTO_TRIGGER_PHRASES = [
-  "i found it",
-  "found it",
-  "this is it",
-  "here it is",
-  "got it",
-];
-
 // Create the AWS Bedrock client
 const bedrockClient = new NovaSonicBidirectionalStreamClient({
   requestHandlerConfig: {

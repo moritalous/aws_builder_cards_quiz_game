@@ -2,7 +2,6 @@ import { InvokeModelWithBidirectionalStreamInput } from "@aws-sdk/client-bedrock
 import { firstValueFrom } from "rxjs";
 import { take } from "rxjs/operators";
 import { SessionData } from "./session-types";
-import { EventDispatcher } from "./event-dispatcher";
 
 /**
  * StreamHandler class for managing bidirectional streams with AWS Bedrock
