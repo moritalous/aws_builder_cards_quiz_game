@@ -82,6 +82,83 @@ Access http://localhost:3000 in your browser.
 └── package.json          # Dependencies
 ```
 
+### Architecture Diagram
+```mermaid
+graph TD
+    subgraph "Project Root"
+        A[aws_builder_cards_quiz_game]
+    end
+    
+    subgraph "Frontend"
+        B[public/]
+        B1[public/index.html]
+        B2[public/src/]
+        B21[public/src/main.js]
+        B22[public/src/style.css]
+        B23[public/src/lib/]
+        B24[public/src/modules/]
+        B241[modules/audio.js]
+        B242[modules/camera.js]
+        B243[modules/chat.js]
+        B244[modules/config.js]
+        B245[modules/socket.js]
+    end
+    
+    subgraph "Backend"
+        C[src/]
+        C1[src/config/]
+        C2[src/core/]
+        C3[src/stream/]
+        C4[src/tools/]
+        C5[src/types/]
+    end
+    
+    subgraph "Project Files"
+        D[package.json]
+        E[README.md]
+    end
+    
+    A --> B
+    A --> C
+    A --> D
+    A --> E
+    
+    B --> B1
+    B --> B2
+    B2 --> B21
+    B2 --> B22
+    B2 --> B23
+    B2 --> B24
+    
+    B24 --> B241
+    B24 --> B242
+    B24 --> B243
+    B24 --> B244
+    B24 --> B245
+    
+    C --> C1
+    C --> C2
+    C --> C3
+    C --> C4
+    C --> C5
+    
+    %% Data Flow
+    B21 -- "imports" --> B241
+    B21 -- "imports" --> B242
+    B21 -- "imports" --> B243
+    B21 -- "imports" --> B244
+    B21 -- "imports" --> B245
+    
+    B245 -- "WebSocket" --> C3
+    C3 -- "Bedrock API" --> C2
+```
+
+### Data Flow
+1. The frontend's main.js integrates various modules
+2. socket.js establishes WebSocket communication with the backend
+3. Backend stream/ components interact with Bedrock API for Nova Sonic and Nova Lite
+4. User voice input and image recognition results are processed in real-time
+
 ## Detailed Feature Information
 
 ### Voice Interaction
