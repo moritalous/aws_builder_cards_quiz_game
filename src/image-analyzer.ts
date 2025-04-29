@@ -212,7 +212,7 @@ export class ImageAnalyzer {
       );
 
       // Check response structure and log
-      console.log("Response structure:", JSON.stringify(response, null, 2));
+      // console.log("Response structure:", JSON.stringify(response, null, 2));
 
       // Get text from correct path
       if (response.output?.message?.content) {

@@ -30,7 +30,7 @@ export const ImageAnalysisToolSchema = JSON.stringify({
     },
     expectedAnswer: {
       type: "string",
-      description: "出題した問題に対する回答",
+      description: "Your answer to the question. It must be a unique AWS service name (such as Amazon S3 or AWS Lambda).",
     },
   },
   required: ["query", "expectedAnswer"],

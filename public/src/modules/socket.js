@@ -152,7 +152,7 @@ function resizeImage(dataUrl, maxWidth, maxHeight, callback) {
     ctx.drawImage(img, 0, 0, width, height);
 
     // Compress with reduced quality
-    const resizedDataUrl = canvas.toDataURL("image/jpeg", 0.7);
+    const resizedDataUrl = canvas.toDataURL("image/png", 0.7);
     callback(resizedDataUrl);
   };
   img.src = dataUrl;

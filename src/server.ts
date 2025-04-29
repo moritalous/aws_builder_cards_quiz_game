@@ -87,7 +87,7 @@ io.on("connection", (socket) => {
 
     // Set up event handlers
     session.onEvent("contentStart", (data) => {
-      console.log("contentStart:", data);
+      // console.log("contentStart:", data);
       socket.emit("contentStart", data);
     });
 
@@ -118,7 +118,7 @@ io.on("connection", (socket) => {
     });
 
     session.onEvent("contentEnd", (data) => {
-      console.log("Content end received: ", data);
+      // console.log("Content end received: ", data);
       socket.emit("contentEnd", data);
     });
 
