@@ -98,10 +98,6 @@ export class NovaSonicBidirectionalStreamClient {
     this.sessionLastActivity.set(sessionId, Date.now());
   }
 
-  public isCleanupInProgress(sessionId: string): boolean {
-    return this.sessionCleanupInProgress.has(sessionId);
-  }
-
   // Create a new streaming session
   public createStreamSession(
     sessionId: string = randomUUID(),
@@ -459,19 +455,5 @@ export class NovaSonicBidirectionalStreamClient {
     } finally {
       this.sessionCleanupInProgress.delete(sessionId);
     }
-  }
-
-  // Current AWS service being asked about
-  private currentQuestionService: string | null = null;
-
-  // Method to set the AWS service being asked about
-  public setCurrentQuestionService(serviceName: string): void {
-    this.currentQuestionService = serviceName;
-    console.log(`Current question service set to: ${serviceName}`);
-  }
-
-  // Method to get the AWS service being asked about
-  public getCurrentQuestionService(): string | null {
-    return this.currentQuestionService;
   }
 }

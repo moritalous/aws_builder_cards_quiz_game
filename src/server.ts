@@ -4,7 +4,7 @@ import http from "http";
 import { Buffer } from "node:buffer";
 import path from "path";
 import { Server } from "socket.io";
-import { NovaSonicBidirectionalStreamClient } from "./core/client";
+import { NovaSonicBidirectionalStreamClient } from "./core/nova-sonic-client";
 
 // Configure AWS credentials
 const AWS_PROFILE_NAME = process.env.AWS_PROFILE || "bedrock-test";

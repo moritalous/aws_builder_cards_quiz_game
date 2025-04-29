@@ -1,5 +1,5 @@
 import { Buffer } from "node:buffer";
-import { NovaSonicBidirectionalStreamClient } from "../core/client";
+import { NovaSonicBidirectionalStreamClient } from "../core/nova-sonic-client";
 import {
   DefaultAudioInputConfiguration,
   DefaultSystemPrompt,
