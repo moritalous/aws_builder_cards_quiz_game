@@ -1,4 +1,4 @@
-import { AudioMediaType, AudioType, TextMediaType } from "./types";
+import { AudioMediaType, AudioType, TextMediaType } from "../types/types";
 
 export const DefaultInferenceConfiguration = {
   maxTokens: 1024,
@@ -30,7 +30,8 @@ export const ImageAnalysisToolSchema = JSON.stringify({
     },
     expectedAnswer: {
       type: "string",
-      description: "Your answer to the question. It must be a unique AWS service name (such as Amazon S3 or AWS Lambda).",
+      description:
+        "Your answer to the question. It must be a unique AWS service name (such as Amazon S3 or AWS Lambda).",
     },
   },
   required: ["query", "expectedAnswer"],

@@ -1,7 +1,7 @@
 import {
   BedrockRuntimeClient,
   BedrockRuntimeClientConfig,
-  InvokeModelWithBidirectionalStreamCommand
+  InvokeModelWithBidirectionalStreamCommand,
 } from "@aws-sdk/client-bedrock-runtime";
 import {
   NodeHttp2Handler,
@@ -15,20 +15,20 @@ import {
   DefaultAudioInputConfiguration,
   DefaultSystemPrompt,
   DefaultTextConfiguration,
-} from "./consts";
-import { EventDispatcher } from "./event-dispatcher";
-import { EventGenerator } from "./event-generator";
-import { ImageAnalyzer } from "./image-analyzer";
-import { SessionData } from "./session-types";
-import { StreamHandler } from "./stream-handler";
-import { StreamSession } from "./stream-session";
-import { ToolProcessor } from "./tool-processor";
-import { InferenceConfig } from "./types";
+} from "../config/consts";
+import { EventDispatcher } from "../stream/event-dispatcher";
+import { EventGenerator } from "../stream/event-generator";
+import { ImageAnalyzer } from "../tools/image-analyzer";
+import { SessionData } from "../types/session-types";
+import { StreamHandler } from "../stream/stream-handler";
+import { StreamSession } from "../stream/stream-session";
+import { ToolProcessor } from "../tools/tool-processor";
+import { InferenceConfig } from "../types/types";
 
 export interface NovaSonicBidirectionalStreamClientConfig {
   requestHandlerConfig?:
-  | NodeHttp2HandlerOptions
-  | Provider<NodeHttp2HandlerOptions | void>;
+    | NodeHttp2HandlerOptions
+    | Provider<NodeHttp2HandlerOptions | void>;
   clientConfig: Partial<BedrockRuntimeClientConfig>;
   inferenceConfig?: InferenceConfig;
 }
@@ -74,7 +74,7 @@ export class NovaSonicBidirectionalStreamClient {
     // Initialize the image analyzer
     this.imageAnalyzer = new ImageAnalyzer({
       credentials: config.clientConfig.credentials,
-      region: config.clientConfig.region || "us-east-1"
+      region: config.clientConfig.region || "us-east-1",
     });
 
     // Initialize the tool processor
@@ -180,7 +180,7 @@ export class NovaSonicBidirectionalStreamClient {
       const asyncIterable = StreamHandler.createSessionAsyncIterable(
         sessionId,
         session,
-        (sid) => this.isSessionActive(sid)
+        (sid) => this.isSessionActive(sid),
       );
 
       console.log(`Starting bidirectional stream for session ${sessionId}...`);
@@ -204,7 +204,8 @@ export class NovaSonicBidirectionalStreamClient {
         (sid) => this.updateSessionActivity(sid),
         (sid, eventType, data) => this.dispatchEvent(sid, eventType, data),
         (sid, toolUseId, result) => this.sendToolResult(sid, toolUseId, result),
-        (toolName, toolUseContent) => this.processToolUse(toolName, toolUseContent)
+        (toolName, toolUseContent) =>
+          this.processToolUse(toolName, toolUseContent),
       );
     } catch (error) {
       console.error(`Error in session ${sessionId}: `, error);
@@ -229,7 +230,12 @@ export class NovaSonicBidirectionalStreamClient {
     const session = this.activeSessions.get(sessionId);
     if (!session) return;
 
-    EventDispatcher.dispatchEventForSession(session, sessionId, eventType, data);
+    EventDispatcher.dispatchEventForSession(
+      session,
+      sessionId,
+      eventType,
+      data,
+    );
   }
 
   // Dispatch an event to registered handlers
@@ -237,7 +243,12 @@ export class NovaSonicBidirectionalStreamClient {
     const session = this.activeSessions.get(sessionId);
     if (!session) return;
 
-    EventDispatcher.dispatchEventForSession(session, sessionId, eventType, data);
+    EventDispatcher.dispatchEventForSession(
+      session,
+      sessionId,
+      eventType,
+      data,
+    );
   }
 
   // Add an event to a session's queue
@@ -255,10 +266,8 @@ export class NovaSonicBidirectionalStreamClient {
     const session = this.activeSessions.get(sessionId);
     if (!session) return;
 
-    EventGenerator.setupSessionStartEvent(
-      sessionId,
-      session,
-      (sid, event) => this.addEventToSessionQueue(sid, event)
+    EventGenerator.setupSessionStartEvent(sessionId, session, (sid, event) =>
+      this.addEventToSessionQueue(sid, event),
     );
   }
 
@@ -266,10 +275,8 @@ export class NovaSonicBidirectionalStreamClient {
     const session = this.activeSessions.get(sessionId);
     if (!session) return;
 
-    EventGenerator.setupPromptStartEvent(
-      sessionId,
-      session,
-      (sid, event) => this.addEventToSessionQueue(sid, event)
+    EventGenerator.setupPromptStartEvent(sessionId, session, (sid, event) =>
+      this.addEventToSessionQueue(sid, event),
     );
   }
 
@@ -286,7 +293,7 @@ export class NovaSonicBidirectionalStreamClient {
       session,
       (sid, event) => this.addEventToSessionQueue(sid, event),
       textConfig,
-      systemPromptContent
+      systemPromptContent,
     );
   }
 
@@ -301,7 +308,7 @@ export class NovaSonicBidirectionalStreamClient {
       sessionId,
       session,
       (sid, event) => this.addEventToSessionQueue(sid, event),
-      audioConfig
+      audioConfig,
     );
   }
 
@@ -319,7 +326,7 @@ export class NovaSonicBidirectionalStreamClient {
       sessionId,
       session,
       audioData,
-      (sid, event) => this.addEventToSessionQueue(sid, event)
+      (sid, event) => this.addEventToSessionQueue(sid, event),
     );
   }
 
@@ -337,7 +344,7 @@ export class NovaSonicBidirectionalStreamClient {
       session,
       toolUseId,
       result,
-      (sid, event) => this.addEventToSessionQueue(sid, event)
+      (sid, event) => this.addEventToSessionQueue(sid, event),
     );
   }
 
@@ -345,10 +352,8 @@ export class NovaSonicBidirectionalStreamClient {
     const session = this.activeSessions.get(sessionId);
     if (!session) return;
 
-    await EventGenerator.sendContentEnd(
-      sessionId,
-      session,
-      (sid, event) => this.addEventToSessionQueue(sid, event)
+    await EventGenerator.sendContentEnd(sessionId, session, (sid, event) =>
+      this.addEventToSessionQueue(sid, event),
     );
   }
 
@@ -356,10 +361,8 @@ export class NovaSonicBidirectionalStreamClient {
     const session = this.activeSessions.get(sessionId);
     if (!session) return;
 
-    await EventGenerator.sendPromptEnd(
-      sessionId,
-      session,
-      (sid, event) => this.addEventToSessionQueue(sid, event)
+    await EventGenerator.sendPromptEnd(sessionId, session, (sid, event) =>
+      this.addEventToSessionQueue(sid, event),
     );
   }
 
@@ -367,10 +370,8 @@ export class NovaSonicBidirectionalStreamClient {
     const session = this.activeSessions.get(sessionId);
     if (!session) return;
 
-    await EventGenerator.sendSessionEnd(
-      sessionId,
-      session,
-      (sid, event) => this.addEventToSessionQueue(sid, event)
+    await EventGenerator.sendSessionEnd(sessionId, session, (sid, event) =>
+      this.addEventToSessionQueue(sid, event),
     );
 
     // Now it's safe to clean up

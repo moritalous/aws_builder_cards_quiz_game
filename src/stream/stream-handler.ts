@@ -1,7 +1,7 @@
 import { InvokeModelWithBidirectionalStreamInput } from "@aws-sdk/client-bedrock-runtime";
 import { firstValueFrom } from "rxjs";
 import { take } from "rxjs/operators";
-import { SessionData } from "./session-types";
+import { SessionData } from "../types/session-types";
 
 /**
  * StreamHandler class for managing bidirectional streams with AWS Bedrock
@@ -17,11 +17,11 @@ export class StreamHandler {
   public static createSessionAsyncIterable(
     sessionId: string,
     sessionData: SessionData,
-    isSessionActive: (sessionId: string) => boolean
+    isSessionActive: (sessionId: string) => boolean,
   ): AsyncIterable<InvokeModelWithBidirectionalStreamInput> {
     if (!isSessionActive(sessionId)) {
       console.log(
-        `Cannot create async iterable: Session ${sessionId} not active`
+        `Cannot create async iterable: Session ${sessionId} not active`,
       );
       return {
         [Symbol.asyncIterator]: () => ({
@@ -32,7 +32,7 @@ export class StreamHandler {
 
     if (!sessionData) {
       throw new Error(
-        `Cannot create async iterable: Session ${sessionId} not found`
+        `Cannot create async iterable: Session ${sessionId} not found`,
       );
     }
 
@@ -41,7 +41,7 @@ export class StreamHandler {
     return {
       [Symbol.asyncIterator]: () => {
         console.log(
-          `AsyncIterable iterator requested for session ${sessionId}`
+          `AsyncIterable iterator requested for session ${sessionId}`,
         );
 
         return {
@@ -52,7 +52,7 @@ export class StreamHandler {
               // Check if session is still active
               if (!sessionData.isActive || !isSessionActive(sessionId)) {
                 console.log(
-                  `Iterator closing for session ${sessionId}, done = true`
+                  `Iterator closing for session ${sessionId}, done = true`,
                 );
                 return { value: undefined, done: true };
               }
@@ -64,7 +64,7 @@ export class StreamHandler {
                     firstValueFrom(sessionData.closeSignal.pipe(take(1))).then(
                       () => {
                         throw new Error("Stream closed");
-                      }
+                      },
                     ),
                   ]);
                 } catch (error) {
@@ -75,9 +75,7 @@ export class StreamHandler {
                     ) {
                       // This is an expected condition when closing the session
                       if (isSessionActive(sessionId)) {
-                        console.log(
-                          `Session ${sessionId} closed during wait`
-                        );
+                        console.log(`Session ${sessionId} closed during wait`);
                       }
                       return { value: undefined, done: true };
                     }
@@ -123,13 +121,13 @@ export class StreamHandler {
           },
 
           throw: async (
-            error: any
+            error: any,
           ): Promise<
             IteratorResult<InvokeModelWithBidirectionalStreamInput>
           > => {
             console.log(
               `Iterator throw () called for session ${sessionId} with error: `,
-              error
+              error,
             );
             sessionData.isActive = false;
             throw error;
@@ -155,8 +153,12 @@ export class StreamHandler {
     response: any,
     updateSessionActivity: (sessionId: string) => void,
     dispatchEvent: (sessionId: string, eventType: string, data: any) => void,
-    sendToolResult: (sessionId: string, toolUseId: string, result: any) => Promise<void>,
-    processToolUse: (toolName: string, toolUseContent: any) => Promise<Object>
+    sendToolResult: (
+      sessionId: string,
+      toolUseId: string,
+      result: any,
+    ) => Promise<void>,
+    processToolUse: (toolName: string, toolUseContent: any) => Promise<Object>,
   ): Promise<void> {
     if (!sessionData) return;
 
@@ -164,7 +166,7 @@ export class StreamHandler {
       for await (const event of response.body) {
         if (!sessionData.isActive) {
           console.log(
-            `Session ${sessionId} is no longer active, stopping response processing`
+            `Session ${sessionId} is no longer active, stopping response processing`,
           );
           break;
         }
@@ -179,26 +181,22 @@ export class StreamHandler {
                 dispatchEvent(
                   sessionId,
                   "contentStart",
-                  jsonResponse.event.contentStart
+                  jsonResponse.event.contentStart,
                 );
               } else if (jsonResponse.event?.textOutput) {
                 dispatchEvent(
                   sessionId,
                   "textOutput",
-                  jsonResponse.event.textOutput
+                  jsonResponse.event.textOutput,
                 );
               } else if (jsonResponse.event?.audioOutput) {
                 dispatchEvent(
                   sessionId,
                   "audioOutput",
-                  jsonResponse.event.audioOutput
+                  jsonResponse.event.audioOutput,
                 );
               } else if (jsonResponse.event?.toolUse) {
-                dispatchEvent(
-                  sessionId,
-                  "toolUse",
-                  jsonResponse.event.toolUse
-                );
+                dispatchEvent(sessionId, "toolUse", jsonResponse.event.toolUse);
 
                 // Store tool use information for later
                 sessionData.toolUseContent = jsonResponse.event.toolUse;
@@ -221,11 +219,15 @@ export class StreamHandler {
                 // function calling
                 const toolResult = await processToolUse(
                   sessionData.toolName,
-                  sessionData.toolUseContent
+                  sessionData.toolUseContent,
                 );
 
                 // Send tool result
-                await sendToolResult(sessionId, sessionData.toolUseId, toolResult);
+                await sendToolResult(
+                  sessionId,
+                  sessionData.toolUseId,
+                  toolResult,
+                );
 
                 // Also dispatch event about tool result
                 dispatchEvent(sessionId, "toolResult", {
@@ -236,7 +238,7 @@ export class StreamHandler {
                 dispatchEvent(
                   sessionId,
                   "contentEnd",
-                  jsonResponse.event.contentEnd
+                  jsonResponse.event.contentEnd,
                 );
               } else {
                 // Handle other events
@@ -244,11 +246,7 @@ export class StreamHandler {
                 console.log(`Event keys for session ${sessionId}: `, eventKeys);
                 console.log(`Handling other events`);
                 if (eventKeys.length > 0) {
-                  dispatchEvent(
-                    sessionId,
-                    eventKeys[0],
-                    jsonResponse.event
-                  );
+                  dispatchEvent(sessionId, eventKeys[0], jsonResponse.event);
                 } else if (Object.keys(jsonResponse).length > 0) {
                   dispatchEvent(sessionId, "unknown", jsonResponse);
                 }
@@ -256,19 +254,19 @@ export class StreamHandler {
             } catch (e) {
               console.log(
                 `Raw text response for session ${sessionId}(parse error): `,
-                textResponse
+                textResponse,
               );
             }
           } catch (e) {
             console.error(
               `Error processing response chunk for session ${sessionId}: `,
-              e
+              e,
             );
           }
         } else if (event.modelStreamErrorException) {
           console.error(
             `Model stream error for session ${sessionId}: `,
-            event.modelStreamErrorException
+            event.modelStreamErrorException,
           );
           dispatchEvent(sessionId, "error", {
             type: "modelStreamErrorException",
@@ -277,7 +275,7 @@ export class StreamHandler {
         } else if (event.internalServerException) {
           console.error(
             `Internal server error for session ${sessionId}: `,
-            event.internalServerException
+            event.internalServerException,
           );
           dispatchEvent(sessionId, "error", {
             type: "internalServerException",
@@ -287,7 +285,7 @@ export class StreamHandler {
       }
 
       console.log(
-        `Response stream processing complete for session ${sessionId}`
+        `Response stream processing complete for session ${sessionId}`,
       );
       dispatchEvent(sessionId, "streamComplete", {
         timestamp: new Date().toISOString(),
@@ -295,7 +293,7 @@ export class StreamHandler {
     } catch (error) {
       console.error(
         `Error processing response stream for session ${sessionId}: `,
-        error
+        error,
       );
       dispatchEvent(sessionId, "error", {
         source: "responseStream",

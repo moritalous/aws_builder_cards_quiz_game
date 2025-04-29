@@ -13,7 +13,7 @@ export class EventDispatcher {
     sessionData: { responseHandlers: Map<string, (data: any) => void> },
     sessionId: string,
     eventType: string,
-    data: any
+    data: any,
   ): void {
     if (!sessionData) return;
 
@@ -24,7 +24,7 @@ export class EventDispatcher {
       } catch (e) {
         console.error(
           `Error in ${eventType} handler for session ${sessionId}: `,
-          e
+          e,
         );
       }
     }
