@@ -9,7 +9,6 @@ let waitingForUserTranscription = false;
 let userThinkingIndicator = null;
 let assistantThinkingIndicator = null;
 let displayAssistantText = false;
-let transcriptionReceived = false;
 let role;
 
 // DOM elements reference
@@ -29,12 +28,12 @@ const chatHistoryManager = ChatHistoryManager.getInstance(
 export function initChat(elementsRef) {
   // Store elements reference
   elements = elementsRef;
-  
+
   const { chatContainer, toggleChatButton } = elements;
-  
+
   // Set up event listeners
   toggleChatButton.addEventListener("click", () => toggleChatVisibility(elements));
-  
+
   // Hide chat area by default
   toggleChatVisibility(elements);
 }
@@ -197,7 +196,7 @@ export function hideAssistantThinkingIndicator() {
 // Handle content start event
 export function handleContentStart(data) {
   role = data.role;
-  
+
   if (data.type === "TEXT") {
     if (data.role === "USER") {
       // When user's text content starts, hide user thinking indicator
@@ -227,9 +226,6 @@ export function handleContentStart(data) {
 // Handle text output event
 export function handleTextOutputEvent(data, isStreaming) {
   if (role === "USER") {
-    // When user text is received, show thinking indicator for assistant response
-    transcriptionReceived = true;
-
     // Add user message to chat
     handleTextOutput({
       role: data.role,
