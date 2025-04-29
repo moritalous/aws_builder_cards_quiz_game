@@ -4,7 +4,7 @@ import { ImageAnalyzer } from "./image-analyzer";
  * Tool processor for handling tool use requests from Nova Sonic
  */
 export class ToolProcessor {
-  constructor(private imageAnalyzer: ImageAnalyzer) { }
+  constructor(private imageAnalyzer: ImageAnalyzer) {}
 
   /**
    * Process tool use request

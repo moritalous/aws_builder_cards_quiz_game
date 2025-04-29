@@ -4,7 +4,7 @@ import http from "http";
 import { Buffer } from "node:buffer";
 import path from "path";
 import { Server } from "socket.io";
-import { NovaSonicBidirectionalStreamClient } from "./client";
+import { NovaSonicBidirectionalStreamClient } from "./core/nova-sonic-client";
 
 // Configure AWS credentials
 const AWS_PROFILE_NAME = process.env.AWS_PROFILE || "bedrock-test";
@@ -16,15 +16,6 @@ const io = new Server(server);
 
 // EventEmitter for client-server communication
 const eventEmitter = new (require("events").EventEmitter)();
-
-// Keywords for detecting voice commands
-const PHOTO_TRIGGER_PHRASES = [
-  "i found it",
-  "found it",
-  "this is it",
-  "here it is",
-  "got it",
-];
 
 // Create the AWS Bedrock client
 const bedrockClient = new NovaSonicBidirectionalStreamClient({
@@ -96,7 +87,7 @@ io.on("connection", (socket) => {
 
     // Set up event handlers
     session.onEvent("contentStart", (data) => {
-      console.log("contentStart:", data);
+      // console.log("contentStart:", data);
       socket.emit("contentStart", data);
     });
 
@@ -127,7 +118,7 @@ io.on("connection", (socket) => {
     });
 
     session.onEvent("contentEnd", (data) => {
-      console.log("Content end received: ", data);
+      // console.log("Content end received: ", data);
       socket.emit("contentEnd", data);
     });
 

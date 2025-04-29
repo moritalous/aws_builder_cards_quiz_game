@@ -4,9 +4,9 @@ import {
   DefaultAudioOutputConfiguration,
   DefaultSystemPrompt,
   DefaultTextConfiguration,
-  ImageAnalysisToolSchema
-} from "./consts";
-import { SessionData } from "./session-types";
+  ImageAnalysisToolSchema,
+} from "../config/consts";
+import { SessionData } from "../types/session-types";
 
 /**
  * EventGenerator class for generating events for Nova Sonic bidirectional streaming
@@ -21,7 +21,7 @@ export class EventGenerator {
   public static setupSessionStartEvent(
     sessionId: string,
     sessionData: SessionData,
-    addEventToQueue: (sessionId: string, event: any) => void
+    addEventToQueue: (sessionId: string, event: any) => void,
   ): void {
     console.log(`Setting up initial events for session ${sessionId}...`);
     if (!sessionData) return;
@@ -45,11 +45,11 @@ export class EventGenerator {
   public static setupPromptStartEvent(
     sessionId: string,
     sessionData: SessionData,
-    addEventToQueue: (sessionId: string, event: any) => void
+    addEventToQueue: (sessionId: string, event: any) => void,
   ): void {
     console.log(`Setting up prompt start event for session ${sessionId}...`);
     if (!sessionData) return;
-    
+
     // Prompt start event
     addEventToQueue(sessionId, {
       event: {
@@ -99,7 +99,7 @@ export class EventGenerator {
   ): void {
     console.log(`Setting up systemPrompt events for session ${sessionId}...`);
     if (!sessionData) return;
-    
+
     // Text content start
     const textPromptID = randomUUID();
     addEventToQueue(sessionId, {

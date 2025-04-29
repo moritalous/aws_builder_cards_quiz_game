@@ -1,8 +1,22 @@
+import {
+  base64ToFloat32Array,
+  initAudio,
+  isAudioStreaming,
+  playAudio,
+  startStreaming,
+  stopStreaming,
+} from "./modules/audio.js";
+import { handleAutoPhotoCapture, initCamera } from "./modules/camera.js";
+import {
+  handleContentEnd,
+  handleContentStart,
+  handleTextOutputEvent,
+  initChat,
+  showUserThinkingIndicator,
+  updateChatUI,
+} from "./modules/chat.js";
 import { SYSTEM_PROMPT } from "./modules/config.js";
-import { initAudio, startStreaming, stopStreaming, base64ToFloat32Array, playAudio, isAudioStreaming } from "./modules/audio.js";
-import { initCamera, handleAutoPhotoCapture } from "./modules/camera.js";
-import { initChat, showUserThinkingIndicator, showAssistantThinkingIndicator, hideUserThinkingIndicator, hideAssistantThinkingIndicator, handleContentStart, handleTextOutputEvent, handleContentEnd, updateChatUI } from "./modules/chat.js";
-import { socket, initSocket, initializeSession } from "./modules/socket.js";
+import { initSocket, initializeSession } from "./modules/socket.js";
 
 // DOM elements
 const elements = {
@@ -11,11 +25,11 @@ const elements = {
   stopButton: document.getElementById("stop"),
   statusElement: document.getElementById("status"),
   mainContainer: document.getElementById("main-container"),
-  
+
   // Chat elements
   chatContainer: document.getElementById("chat-container"),
   toggleChatButton: document.getElementById("toggle-chat"),
-  
+
   // Camera elements
   videoContainer: document.getElementById("video-container"),
   cameraToggleButton: document.getElementById("camera-toggle"),
@@ -27,7 +41,7 @@ const elements = {
   savePhotoButton: document.getElementById("save-photo"),
   discardPhotoButton: document.getElementById("discard-photo"),
   autoCaptureToggleButton: document.getElementById("auto-capture-toggle"),
-  cameraSelectElement: document.getElementById("camera-select")
+  cameraSelectElement: document.getElementById("camera-select"),
 };
 
 // Session state
@@ -40,13 +54,13 @@ async function initializeApp() {
   if (audioInitialized) {
     elements.startButton.disabled = false;
   }
-  
+
   // Initialize camera
   initCamera(elements);
-  
+
   // Initialize chat
   initChat(elements);
-  
+
   // Initialize socket with callbacks
   initSocket(elements, {
     onAudioOutput: handleAudioOutput,
@@ -54,9 +68,9 @@ async function initializeApp() {
     onContentStart: handleContentStartEvent,
     onContentEnd: handleContentEndEvent,
     onTakePhotoRequest: handleTakePhotoRequest,
-    onStreamComplete: handleStreamComplete
+    onStreamComplete: handleStreamComplete,
   });
-  
+
   // Set up event listeners
   setupEventListeners();
 }
@@ -79,13 +93,13 @@ async function handleStartButtonClick() {
       return;
     }
   }
-  
+
   // Start streaming audio
   const streamingStarted = await startStreaming(elements.statusElement);
   if (streamingStarted) {
     elements.startButton.disabled = true;
     elements.stopButton.disabled = false;
-    
+
     // Show user thinking indicator when starting to record
     showUserThinkingIndicator();
   }
@@ -119,7 +133,7 @@ function handleTextOutput(data) {
 // Handle content start event
 function handleContentStartEvent(data) {
   handleContentStart(data);
-  
+
   if (data.type === "AUDIO" && isAudioStreaming()) {
     showUserThinkingIndicator();
   }

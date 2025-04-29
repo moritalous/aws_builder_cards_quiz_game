@@ -1,6 +1,10 @@
 import { Buffer } from "node:buffer";
-import { NovaSonicBidirectionalStreamClient } from "./client";
-import { DefaultAudioInputConfiguration, DefaultSystemPrompt, DefaultTextConfiguration } from "./consts";
+import { NovaSonicBidirectionalStreamClient } from "../core/nova-sonic-client";
+import {
+  DefaultAudioInputConfiguration,
+  DefaultSystemPrompt,
+  DefaultTextConfiguration,
+} from "../config/consts";
 
 export class StreamSession {
   private audioBufferQueue: Buffer[] = [];
@@ -11,7 +15,7 @@ export class StreamSession {
   constructor(
     private sessionId: string,
     private client: NovaSonicBidirectionalStreamClient,
-  ) { }
+  ) {}
 
   // Register event handlers for this specific session
   public onEvent(

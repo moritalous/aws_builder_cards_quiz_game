@@ -1,10 +1,13 @@
-import { BedrockRuntimeClient, ConverseCommand } from "@aws-sdk/client-bedrock-runtime";
+import {
+  BedrockRuntimeClient,
+  ConverseCommand,
+} from "@aws-sdk/client-bedrock-runtime";
 import { Provider } from "@smithy/types";
 import { Buffer } from "node:buffer";
 
 /**
  * Image Analyzer module for AWS BuilderCards Quiz Game
- * 
+ *
  * This module handles all image analysis related functionality including:
  * - Image capture requests
  * - AWS Bedrock multimodal AI integration
@@ -28,7 +31,7 @@ export class ImageAnalyzer {
       region: config.region || "us-east-1",
       credentials: config.credentials,
     });
-    
+
     if (config.eventEmitter) {
       this.eventEmitter = config.eventEmitter;
     }
@@ -153,12 +156,12 @@ export class ImageAnalyzer {
       );
       console.log({
         imageAnalysisResults: result,
-        answersToQuestionsYouPosed: expectedAnswer
+        answersToQuestionsYouPosed: expectedAnswer,
       });
 
       return {
         result: result,
-        collect_answer: expectedAnswer
+        collect_answer: expectedAnswer,
       };
     } catch (error) {
       console.error("Error in image analysis:", error);
@@ -212,7 +215,7 @@ export class ImageAnalyzer {
       );
 
       // Check response structure and log
-      console.log("Response structure:", JSON.stringify(response, null, 2));
+      // console.log("Response structure:", JSON.stringify(response, null, 2));
 
       // Get text from correct path
       if (response.output?.message?.content) {
@@ -229,7 +232,7 @@ export class ImageAnalyzer {
       console.error("Error calling multimodal AI:", error);
       throw new Error(
         "Failed to process image with AI: " +
-        (error instanceof Error ? error.message : String(error)),
+          (error instanceof Error ? error.message : String(error)),
       );
     }
   }

@@ -11,6 +11,9 @@ let assistantThinkingIndicator = null;
 let displayAssistantText = false;
 let role;
 
+// DOM elements reference
+let elements = null;
+
 // Create chat history manager
 const chatHistoryManager = ChatHistoryManager.getInstance(
   chatRef,
@@ -18,16 +21,21 @@ const chatHistoryManager = ChatHistoryManager.getInstance(
     chat = { ...newChat };
     chatRef.current = chat;
     updateChatUI();
-  }
+  },
 );
 
 // Initialize chat UI
-export function initChat(elements) {
+export function initChat(elementsRef) {
+  // Store elements reference
+  elements = elementsRef;
+
   const { chatContainer, toggleChatButton } = elements;
-  
+
   // Set up event listeners
-  toggleChatButton.addEventListener("click", () => toggleChatVisibility(elements));
-  
+  toggleChatButton.addEventListener("click", () =>
+    toggleChatVisibility(elements),
+  );
+
   // Hide chat area by default
   toggleChatVisibility(elements);
 }
@@ -46,11 +54,12 @@ export function handleTextOutput(data) {
 
 // Update the UI based on the current chat history
 export function updateChatUI() {
-  const chatContainer = document.getElementById("chat-container");
-  if (!chatContainer) {
+  if (!elements || !elements.chatContainer) {
     console.error("Chat container not found");
     return;
   }
+
+  const chatContainer = elements.chatContainer;
 
   // Clear existing chat messages
   chatContainer.innerHTML = "";
@@ -100,8 +109,8 @@ export function updateChatUI() {
 export function showUserThinkingIndicator() {
   hideUserThinkingIndicator();
 
-  const chatContainer = document.getElementById("chat-container");
-  if (!chatContainer) return;
+  if (!elements || !elements.chatContainer) return;
+  const chatContainer = elements.chatContainer;
 
   waitingForUserTranscription = true;
   userThinkingIndicator = document.createElement("div");
@@ -135,8 +144,8 @@ export function showUserThinkingIndicator() {
 export function showAssistantThinkingIndicator() {
   hideAssistantThinkingIndicator();
 
-  const chatContainer = document.getElementById("chat-container");
-  if (!chatContainer) return;
+  if (!elements || !elements.chatContainer) return;
+  const chatContainer = elements.chatContainer;
 
   waitingForAssistantResponse = true;
   assistantThinkingIndicator = document.createElement("div");
@@ -189,7 +198,7 @@ export function hideAssistantThinkingIndicator() {
 // Handle content start event
 export function handleContentStart(data) {
   role = data.role;
-  
+
   if (data.type === "TEXT") {
     if (data.role === "USER") {
       // When user's text content starts, hide user thinking indicator
@@ -219,9 +228,6 @@ export function handleContentStart(data) {
 // Handle text output event
 export function handleTextOutputEvent(data, isStreaming) {
   if (role === "USER") {
-    // When user text is received, show thinking indicator for assistant response
-    transcriptionReceived = true;
-
     // Add user message to chat
     handleTextOutput({
       role: data.role,
@@ -272,7 +278,8 @@ export function handleContentEnd(data, isStreaming) {
 
 // Toggle chat visibility
 export function toggleChatVisibility(elements) {
-  const { chatContainer, videoContainer, mainContainer, toggleChatButton } = elements;
+  const { chatContainer, videoContainer, mainContainer, toggleChatButton } =
+    elements;
 
   if (chatContainer.style.display === "none") {
     // Show chat
