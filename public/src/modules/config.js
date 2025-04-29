@@ -18,7 +18,7 @@ export const awsServices = [
   "Amazon API Gateway",
   "Amazon DynamoDB",
   "Amazon Kinesis Data Streams",
-  "Amazon Kinesis Data Firehose",
+  "Amazon Data Firehose",
   "Amazon CloudWatch",
   "AWS IAM Identity Center",
   "Amazon Athena",
@@ -39,8 +39,7 @@ export const TARGET_SAMPLE_RATE = 16000;
 export const isFirefox = navigator.userAgent.toLowerCase().includes("firefox");
 
 // Create a string of all AWS services for the system prompt
-export const awsServicesString = awsServices.join(", ");
-
+export const awsServicesString = [...awsServices].sort(() => Math.random() - 0.5).join(", ");
 // Custom system prompt - you can modify this
 export const SYSTEM_PROMPT = `You are the host of an AWS BuilderCards Quiz Game. Follow these rules:
 
