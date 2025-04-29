@@ -9,7 +9,11 @@ let waitingForUserTranscription = false;
 let userThinkingIndicator = null;
 let assistantThinkingIndicator = null;
 let displayAssistantText = false;
+let transcriptionReceived = false;
 let role;
+
+// DOM elements reference
+let elements = null;
 
 // Create chat history manager
 const chatHistoryManager = ChatHistoryManager.getInstance(
@@ -22,7 +26,10 @@ const chatHistoryManager = ChatHistoryManager.getInstance(
 );
 
 // Initialize chat UI
-export function initChat(elements) {
+export function initChat(elementsRef) {
+  // Store elements reference
+  elements = elementsRef;
+  
   const { chatContainer, toggleChatButton } = elements;
   
   // Set up event listeners
@@ -46,11 +53,12 @@ export function handleTextOutput(data) {
 
 // Update the UI based on the current chat history
 export function updateChatUI() {
-  const chatContainer = document.getElementById("chat-container");
-  if (!chatContainer) {
+  if (!elements || !elements.chatContainer) {
     console.error("Chat container not found");
     return;
   }
+
+  const chatContainer = elements.chatContainer;
 
   // Clear existing chat messages
   chatContainer.innerHTML = "";
@@ -100,8 +108,8 @@ export function updateChatUI() {
 export function showUserThinkingIndicator() {
   hideUserThinkingIndicator();
 
-  const chatContainer = document.getElementById("chat-container");
-  if (!chatContainer) return;
+  if (!elements || !elements.chatContainer) return;
+  const chatContainer = elements.chatContainer;
 
   waitingForUserTranscription = true;
   userThinkingIndicator = document.createElement("div");
@@ -135,8 +143,8 @@ export function showUserThinkingIndicator() {
 export function showAssistantThinkingIndicator() {
   hideAssistantThinkingIndicator();
 
-  const chatContainer = document.getElementById("chat-container");
-  if (!chatContainer) return;
+  if (!elements || !elements.chatContainer) return;
+  const chatContainer = elements.chatContainer;
 
   waitingForAssistantResponse = true;
   assistantThinkingIndicator = document.createElement("div");
