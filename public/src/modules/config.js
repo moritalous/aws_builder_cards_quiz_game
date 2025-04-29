@@ -31,7 +31,7 @@ export const awsServices = [
   "Amazon CodeCatalyst",
   "Amazon OpenSearch Service",
   "AWS CloudFormation",
-  "AWS CDK"
+  "AWS CDK",
 ];
 
 // Audio processing constants
@@ -39,7 +39,9 @@ export const TARGET_SAMPLE_RATE = 16000;
 export const isFirefox = navigator.userAgent.toLowerCase().includes("firefox");
 
 // Create a string of all AWS services for the system prompt
-export const awsServicesString = [...awsServices].sort(() => Math.random() - 0.5).join(", ");
+export const awsServicesString = [...awsServices]
+  .sort(() => Math.random() - 0.5)
+  .join(", ");
 // Custom system prompt - you can modify this
 export const SYSTEM_PROMPT = `You are the host of an AWS BuilderCards Quiz Game. Follow these rules:
 

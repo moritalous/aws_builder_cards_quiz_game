@@ -1,6 +1,6 @@
 import { AudioPlayer } from "../lib/play/AudioPlayer.js";
-import { TARGET_SAMPLE_RATE, isFirefox } from './config.js';
-import { socket } from './socket.js';
+import { TARGET_SAMPLE_RATE, isFirefox } from "./config.js";
+import { socket } from "./socket.js";
 
 // Audio processing variables
 let audioContext;
@@ -106,7 +106,7 @@ export async function startStreaming(statusElement) {
     isStreaming = true;
     statusElement.textContent = "Streaming... Speak now";
     statusElement.className = "recording";
-    
+
     return true;
   } catch (error) {
     console.error("Error starting recording:", error);

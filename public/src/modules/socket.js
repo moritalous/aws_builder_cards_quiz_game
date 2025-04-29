@@ -7,13 +7,13 @@ export const socket = io();
 // Initialize socket with event handlers
 export function initSocket(elements, callbacks) {
   const { statusElement } = elements;
-  const { 
-    onAudioOutput, 
-    onTextOutput, 
-    onContentStart, 
-    onContentEnd, 
+  const {
+    onAudioOutput,
+    onTextOutput,
+    onContentStart,
+    onContentEnd,
     onTakePhotoRequest,
-    onStreamComplete
+    onStreamComplete,
   } = callbacks;
 
   // Handle connection status updates

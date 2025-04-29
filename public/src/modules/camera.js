@@ -1,4 +1,4 @@
-import { sendPhotoToServer, setAutoCapture } from './socket.js';
+import { sendPhotoToServer, setAutoCapture } from "./socket.js";
 
 // Camera variables
 let videoStream = null;
@@ -10,10 +10,10 @@ let isAutoCaptureEnabled = true;
 
 // Initialize camera functionality
 export function initCamera(elements) {
-  const { 
-    videoElement, 
-    cameraToggleButton, 
-    takePhotoButton, 
+  const {
+    videoElement,
+    cameraToggleButton,
+    takePhotoButton,
     photoCanvas,
     photoPreviewContainer,
     photoPreview,
@@ -21,20 +21,22 @@ export function initCamera(elements) {
     discardPhotoButton,
     autoCaptureToggleButton,
     cameraSelectElement,
-    statusElement
+    statusElement,
   } = elements;
-  
+
   // Set up event listeners
   cameraToggleButton.addEventListener("click", () => toggleCamera(elements));
   takePhotoButton.addEventListener("click", () => takePhoto(elements, false));
   savePhotoButton.addEventListener("click", () => savePhoto(elements));
   discardPhotoButton.addEventListener("click", () => discardPhoto(elements));
-  autoCaptureToggleButton.addEventListener("click", () => toggleAutoCapture(elements));
+  autoCaptureToggleButton.addEventListener("click", () =>
+    toggleAutoCapture(elements),
+  );
   cameraSelectElement.addEventListener("change", () => switchCamera(elements));
-  
+
   // Initialize camera list
   getAvailableCameras(elements);
-  
+
   // Set default auto capture state
   autoCaptureToggleButton.textContent = "Disable Auto Capture";
   setAutoCapture(true);
@@ -43,7 +45,7 @@ export function initCamera(elements) {
 // Get available camera devices
 export async function getAvailableCameras(elements) {
   const { cameraSelectElement, statusElement } = elements;
-  
+
   try {
     const devices = await navigator.mediaDevices.enumerateDevices();
     const videoDevices = devices.filter(
@@ -92,14 +94,14 @@ export async function getAvailableCameras(elements) {
 
 // Toggle camera on/off
 export async function toggleCamera(elements) {
-  const { 
-    videoElement, 
-    cameraToggleButton, 
-    takePhotoButton, 
+  const {
+    videoElement,
+    cameraToggleButton,
+    takePhotoButton,
     cameraSelectElement,
-    statusElement 
+    statusElement,
   } = elements;
-  
+
   if (isCameraActive) {
     // Stop the camera
     if (videoStream) {
@@ -153,13 +155,9 @@ export async function toggleCamera(elements) {
 
 // Take a photo from the camera
 export function takePhoto(elements, autoMode = false) {
-  const { 
-    videoElement, 
-    photoCanvas, 
-    photoPreview, 
-    photoPreviewContainer 
-  } = elements;
-  
+  const { videoElement, photoCanvas, photoPreview, photoPreviewContainer } =
+    elements;
+
   if (!isCameraActive || !videoElement.srcObject) {
     console.error("Camera is not active");
     return;
@@ -230,12 +228,8 @@ export function discardPhoto(elements) {
 
 // Switch to a different camera
 export async function switchCamera(elements) {
-  const { 
-    videoElement, 
-    cameraSelectElement, 
-    statusElement 
-  } = elements;
-  
+  const { videoElement, cameraSelectElement, statusElement } = elements;
+
   if (!isCameraActive) {
     // Do nothing if camera is not active
     return;
@@ -282,7 +276,7 @@ export async function switchCamera(elements) {
 // Toggle auto capture
 export function toggleAutoCapture(elements) {
   const { autoCaptureToggleButton, statusElement } = elements;
-  
+
   isAutoCaptureEnabled = !isAutoCaptureEnabled;
   autoCaptureToggleButton.textContent = isAutoCaptureEnabled
     ? "Disable Auto Capture"

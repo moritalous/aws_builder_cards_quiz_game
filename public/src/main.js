@@ -1,6 +1,20 @@
-import { base64ToFloat32Array, initAudio, isAudioStreaming, playAudio, startStreaming, stopStreaming } from "./modules/audio.js";
+import {
+  base64ToFloat32Array,
+  initAudio,
+  isAudioStreaming,
+  playAudio,
+  startStreaming,
+  stopStreaming,
+} from "./modules/audio.js";
 import { handleAutoPhotoCapture, initCamera } from "./modules/camera.js";
-import { handleContentEnd, handleContentStart, handleTextOutputEvent, initChat, showUserThinkingIndicator, updateChatUI } from "./modules/chat.js";
+import {
+  handleContentEnd,
+  handleContentStart,
+  handleTextOutputEvent,
+  initChat,
+  showUserThinkingIndicator,
+  updateChatUI,
+} from "./modules/chat.js";
 import { SYSTEM_PROMPT } from "./modules/config.js";
 import { initSocket, initializeSession } from "./modules/socket.js";
 
@@ -27,7 +41,7 @@ const elements = {
   savePhotoButton: document.getElementById("save-photo"),
   discardPhotoButton: document.getElementById("discard-photo"),
   autoCaptureToggleButton: document.getElementById("auto-capture-toggle"),
-  cameraSelectElement: document.getElementById("camera-select")
+  cameraSelectElement: document.getElementById("camera-select"),
 };
 
 // Session state
@@ -54,7 +68,7 @@ async function initializeApp() {
     onContentStart: handleContentStartEvent,
     onContentEnd: handleContentEndEvent,
     onTakePhotoRequest: handleTakePhotoRequest,
-    onStreamComplete: handleStreamComplete
+    onStreamComplete: handleStreamComplete,
   });
 
   // Set up event listeners

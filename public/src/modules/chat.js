@@ -21,7 +21,7 @@ const chatHistoryManager = ChatHistoryManager.getInstance(
     chat = { ...newChat };
     chatRef.current = chat;
     updateChatUI();
-  }
+  },
 );
 
 // Initialize chat UI
@@ -32,7 +32,9 @@ export function initChat(elementsRef) {
   const { chatContainer, toggleChatButton } = elements;
 
   // Set up event listeners
-  toggleChatButton.addEventListener("click", () => toggleChatVisibility(elements));
+  toggleChatButton.addEventListener("click", () =>
+    toggleChatVisibility(elements),
+  );
 
   // Hide chat area by default
   toggleChatVisibility(elements);
@@ -276,7 +278,8 @@ export function handleContentEnd(data, isStreaming) {
 
 // Toggle chat visibility
 export function toggleChatVisibility(elements) {
-  const { chatContainer, videoContainer, mainContainer, toggleChatButton } = elements;
+  const { chatContainer, videoContainer, mainContainer, toggleChatButton } =
+    elements;
 
   if (chatContainer.style.display === "none") {
     // Show chat
