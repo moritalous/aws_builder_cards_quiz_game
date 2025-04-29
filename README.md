@@ -52,8 +52,8 @@ npm install
 
 ### Environment Variables
 ```
-export AWS_PROFILE=<your-profile>
-export AWS_REGION=us-east-1
+export AWS_PROFILE=<your-profile>  # Default value: "bedrock-test"
+export AWS_REGION=us-east-1        # Default value: "us-east-1"
 ```
 
 ### Execution
