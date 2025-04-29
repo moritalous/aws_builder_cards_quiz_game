@@ -67,19 +67,19 @@ Access http://localhost:3000 in your browser.
 ```
 .
 ├── public/                 # Frontend files
-│   ├── index.html          # Main HTML
-│   └── src/                # Frontend source code
-│       ├── lib/            # Utility libraries
-│       ├── main.js         # Main application logic
-│       └── style.css       # Style definitions
-├── src/                    # Backend source code
-│   ├── aws-services.ts     # AWS service database
-│   ├── client.ts           # Bedrock API client
-│   ├── consts.ts           # Constants
-│   ├── index-cli.ts        # CLI interface
-│   ├── server.ts           # Express server
-│   └── types.ts            # Type definitions
-└── package.json            # Dependencies
+│   ├── index.html         # Main HTML
+│   └── src/               # Frontend source code
+│       ├── lib/           # Utility libraries
+│       ├── modules/       # Frontend modules
+│       ├── main.js        # Main application logic
+│       └── style.css      # Style definitions
+├── src/                   # Backend source code
+│   ├── config/           # Configuration files
+│   ├── core/             # Core functionality
+│   ├── stream/           # Streaming components
+│   ├── tools/            # Tool implementations
+│   └── types/            # Type definitions
+└── package.json          # Dependencies
 ```
 
 ## Detailed Feature Information
